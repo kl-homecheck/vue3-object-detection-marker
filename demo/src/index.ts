@@ -1,8 +1,9 @@
 import type { App } from 'vue';
 import ObjectDetectionMarker from './components/ObjectDetectionMarker.vue';
+import ObjectDetectionPreview from './components/ObjectDetectionPreview.vue';
 
 // Named exports
-export { ObjectDetectionMarker };
+export { ObjectDetectionMarker, ObjectDetectionPreview };
 
 // Type exports
 export * from './types';
@@ -14,5 +15,6 @@ export * from './utils';
 export default {
   install(app: App) {
     app.component('ObjectDetectionMarker', ObjectDetectionMarker);
+    app.component('ObjectDetectionPreview', ObjectDetectionPreview);
   },
 }; 

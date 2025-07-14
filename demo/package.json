@@ -40,6 +40,7 @@
     "build": "vue-tsc -b && vite build",
     "build:lib": "vite build --mode lib",
     "preview": "vite preview",
+    "type-check": "vue-tsc --noEmit",
     "prepublishOnly": "npm run build:lib",
     "lint": "eslint src --ext .ts,.vue",
     "lint:fix": "eslint src --ext .ts,.vue --fix",
@@ -50,6 +51,7 @@
     "vue": "^3.5.17"
   },
   "devDependencies": {
+    "@types/node": "^24.0.13",
     "@typescript-eslint/eslint-plugin": "^8.36.0",
     "@typescript-eslint/parser": "^8.36.0",
     "@vitejs/plugin-vue": "^6.0.0",

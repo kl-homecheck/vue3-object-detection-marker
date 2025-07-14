@@ -11,7 +11,7 @@ const resolution = ref(6);
 const jsonData = ref('');
 const previewData = ref<GridLayerExport | null>(null);
 const copySuccess = ref(false);
-const copySuccessPercent = ref(false);
+
 const testImageIndex = ref(1);
 const objectFitMode = ref<'contain' | 'cover'>('contain');
 const renderMode = ref<'grid' | 'rect'>('grid');
@@ -169,11 +169,6 @@ const setBrushShape = (shape: 'circle' | 'square') => {
 };
 
 // Get marker state - using computed for reactivity
-const colorLayers = computed(() => {
-  if (!markerRef.value) return new Map();
-  return markerRef.value.getColorLayers() || new Map();
-});
-
 const totalSelectedCount = computed(() => {
   return markerRef.value?.getTotalSelectedCount() || 0;
 });

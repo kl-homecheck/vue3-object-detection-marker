@@ -39,14 +39,12 @@ import type {
   Props, 
   SelectionMode, 
   GridCell, 
-  SelectionData, 
   ColorLayer, 
   LayerSelectionData, 
   ExtendedSelectionData,
   ColorLayerExport,
   BrushShape,
   PercentRect,
-  PercentLayerExport,
   GridLayerExport,
   Rectangle
 } from '../types';

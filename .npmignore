@@ -1,0 +1,30 @@
+# Source files
+demo/
+.github/
+.taskmaster/
+.cursor/
+
+# Development files
+*.log
+.DS_Store
+.vscode/
+.idea/
+
+# Git
+.git/
+.gitignore
+
+# CI/CD
+.github/
+
+# Documentation (except README.md)
+docs/
+
+# Environment
+.env*
+
+# Build artifacts in demo
+demo/dist/
+demo/node_modules/
+
+# Only include the built dist folder and essential files 
