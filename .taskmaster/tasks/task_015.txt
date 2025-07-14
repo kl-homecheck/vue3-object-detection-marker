@@ -1,0 +1,110 @@
+# Task ID: 15
+# Title: Implement Selection Import/Export
+# Status: done
+# Dependencies: 11
+# Priority: low
+# Description: Create functionality to save and load selection patterns, allowing users to reuse selections across different images or sessions.
+# Details:
+1. Implement selection export function:
+```typescript
+const exportSelection = (): SelectionPattern => {
+  const selectedKeys = Array.from(canvasManager.value.getSelectedGrids());
+  const imageWidth = imageElement.value!.width;
+  const imageHeight = imageElement.value!.height;
+  
+  return {
+    version: '1.0',
+    timestamp: new Date().toISOString(),
+    imageSize: { width: imageWidth, height: imageHeight },
+    gridSize: props.gridSize,
+    selectedGrids: selectedKeys.map(key => {
+      const [row, col] = key.split(',').map(Number);
+      return { row, col };
+    })
+  };
+};
+
+const saveSelectionToFile = () => {
+  const data = exportSelection();
+  const json = JSON.stringify(data, null, 2);
+  const blob = new Blob([json], { type: 'application/json' });
+  const url = URL.createObjectURL(blob);
+  
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = 'selection-pattern.json';
+  a.click();
+  
+  URL.revokeObjectURL(url);
+};
+```
+2. Implement selection import function:
+```typescript
+const importSelection = (pattern: SelectionPattern) => {
+  // Clear current selection
+  canvasManager.value.clearSelection();
+  
+  // Calculate scaling factors if image sizes differ
+  const scaleX = imageElement.value!.width / pattern.imageSize.width;
+  const scaleY = imageElement.value!.height / pattern.imageSize.height;
+  
+  // Apply selection with scaling if needed
+  pattern.selectedGrids.forEach(grid => {
+    const row = Math.floor(grid.row * scaleY);
+    const col = Math.floor(grid.col * scaleX);
+    canvasManager.value.selectGrid(row, col);
+  });
+  
+  canvasManager.value.render();
+  saveToHistory();
+};
+
+const loadSelectionFromFile = (event: Event) => {
+  const input = event.target as HTMLInputElement;
+  if (!input.files || input.files.length === 0) return;
+  
+  const file = input.files[0];
+  const reader = new FileReader();
+  
+  reader.onload = (e) => {
+    try {
+      const pattern = JSON.parse(e.target!.result as string) as SelectionPattern;
+      importSelection(pattern);
+    } catch (error) {
+      console.error('Failed to parse selection pattern:', error);
+      // Show error to user
+    }
+  };
+  
+  reader.readAsText(file);
+};
+```
+3. Define TypeScript interface for selection pattern:
+```typescript
+interface SelectionPattern {
+  version: string;
+  timestamp: string;
+  imageSize: {
+    width: number;
+    height: number;
+  };
+  gridSize: number;
+  selectedGrids: Array<{
+    row: number;
+    col: number;
+  }>;
+}
+```
+4. Add UI controls for import/export
+5. Implement pattern scaling for different image sizes
+6. Add pattern preview before applying
+7. Implement pattern library for storing common patterns
+
+# Test Strategy:
+1. Test export functionality produces valid JSON
+2. Verify import correctly restores selection patterns
+3. Test scaling behavior with different image sizes
+4. Verify error handling for invalid import files
+5. Test UI controls for import/export
+6. Verify pattern preview functionality
+7. Test with complex selection patterns

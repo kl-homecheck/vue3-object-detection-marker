@@ -1,0 +1,119 @@
+# Task ID: 6
+# Title: Implement Point-Based Selection Mode
+# Status: done
+# Dependencies: 5
+# Priority: high
+# Description: Create the point-based selection mode that allows users to select grid cells by dragging the mouse or touch over the image.
+# Details:
+1. Add selection state management to CanvasManager:
+```typescript
+private selectedGrids: Set<string> = new Set();
+
+toggleGridSelection(row: number, col: number): void {
+  const key = this.getGridKey(row, col);
+  if (this.selectedGrids.has(key)) {
+    this.selectedGrids.delete(key);
+  } else {
+    this.selectedGrids.add(key);
+  }
+}
+
+selectGrid(row: number, col: number): void {
+  const key = this.getGridKey(row, col);
+  this.selectedGrids.add(key);
+}
+
+deselectGrid(row: number, col: number): void {
+  const key = this.getGridKey(row, col);
+  this.selectedGrids.delete(key);
+}
+
+isGridSelected(row: number, col: number): boolean {
+  return this.selectedGrids.has(this.getGridKey(row, col));
+}
+```
+2. Implement mouse/touch event handlers in the Vue component:
+```typescript
+const handleMouseDown = (event: MouseEvent) => {
+  if (currentMode.value !== 'point') return;
+  isDrawing.value = true;
+  const { offsetX, offsetY } = event;
+  selectGridAtPosition(offsetX, offsetY);
+};
+
+const handleMouseMove = (event: MouseEvent) => {
+  if (!isDrawing.value) return;
+  const { offsetX, offsetY } = event;
+  selectGridAtPosition(offsetX, offsetY);
+};
+
+const handleMouseUp = () => {
+  isDrawing.value = false;
+};
+
+const selectGridAtPosition = (x: number, y: number) => {
+  const { row, col } = canvasManager.value.getGridCoordinates(x, y);
+  if (currentMode.value === 'eraser') {
+    canvasManager.value.deselectGrid(row, col);
+  } else {
+    canvasManager.value.selectGrid(row, col);
+  }
+  canvasManager.value.render();
+};
+```
+3. Add touch event support for mobile devices
+4. Implement continuous selection during drag
+5. Add visual feedback during selection
+6. Optimize selection performance for rapid movements
+
+# Test Strategy:
+1. Test selection state management functions
+2. Verify mouse event handling correctly selects grid cells
+3. Test touch events on mobile devices
+4. Verify continuous selection during drag operations
+5. Test selection performance with rapid movements
+6. Verify visual feedback matches selection state
+
+# Subtasks:
+## 1. Implement Selection State Management [done]
+### Dependencies: None
+### Description: Implement the core selection state management functionality in the CanvasManager class
+### Details:
+Implement the methods for managing grid selection state including toggleGridSelection, selectGrid, deselectGrid, isGridSelected, and getGridKey. Ensure the selectedGrids Set is properly initialized and maintained.
+
+## 2. Implement Mouse Event Handlers [done]
+### Dependencies: 6.1
+### Description: Create mouse event handlers for point-based selection in the Vue component
+### Details:
+Implement handleMouseDown, handleMouseMove, and handleMouseUp event handlers that track the mouse position and call the appropriate selection methods. Add logic to check if the current mode is 'point' before processing events.
+
+## 3. Implement Grid Coordinate Calculation [done]
+### Dependencies: 6.1
+### Description: Create a method to convert screen coordinates to grid coordinates
+### Details:
+Implement the getGridCoordinates method in CanvasManager that takes x and y screen coordinates and returns the corresponding row and column in the grid. This should account for grid size, padding, and canvas offset.
+
+## 4. Add Touch Event Support [done]
+### Dependencies: 6.2, 6.3
+### Description: Implement touch event handlers for mobile device support
+### Details:
+Add touchstart, touchmove, and touchend event handlers that mirror the functionality of the mouse event handlers. Handle touch coordinates correctly by accounting for scroll and offset differences between touch and mouse events.
+
+## 5. Implement Visual Feedback for Selection [done]
+### Dependencies: 6.1
+### Description: Add visual indicators for selected grid cells
+### Details:
+Modify the render method in CanvasManager to visually highlight selected grid cells. This could include changing the cell color, adding a border, or other visual indicators. Ensure the highlighting is clear but doesn't interfere with the underlying image.
+
+## 6. Optimize Selection Performance [done]
+### Dependencies: 6.2, 6.3, 6.4
+### Description: Improve performance for rapid selection movements
+### Details:
+Implement performance optimizations for handling rapid mouse/touch movements, such as debouncing, throttling, or using requestAnimationFrame. Ensure that all grid cells are properly selected even during fast dragging motions.
+
+## 7. Implement Selection Mode Toggle [done]
+### Dependencies: 6.5, 6.6
+### Description: Add UI controls to switch between selection modes
+### Details:
+Create UI controls that allow users to switch between point selection mode and other modes (like eraser). Update the currentMode reactive property and ensure the appropriate selection behavior is used based on the active mode.
+

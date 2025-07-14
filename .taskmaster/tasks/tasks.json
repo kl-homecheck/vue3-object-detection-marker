@@ -1,0 +1,753 @@
+{
+  "master": {
+    "tasks": [
+      {
+        "id": 1,
+        "title": "Setup Project Repository and Structure",
+        "description": "Initialize the npm package project with Vue 3 and TypeScript support, setting up the development environment and project structure.",
+        "details": "1. Create a new project using Vue CLI or Vite:\n```bash\nnpm init vite@latest vue3-object-detection-marker -- --template vue-ts\n```\n2. Configure TypeScript (tsconfig.json) with strict type checking\n3. Set up ESLint and Prettier for code quality\n4. Configure package.json with appropriate metadata for npm publishing:\n   - name: vue3-object-detection-marker\n   - version: 0.1.0\n   - main: dist/index.js\n   - types: dist/index.d.ts\n   - files: [\"dist\"]\n5. Create folder structure:\n   - src/\n     - components/\n     - types/\n     - utils/\n     - index.ts (main entry point)\n6. Setup build configuration using Rollup or Vite for library mode\n7. Configure Vue 3 plugin structure for easy integration",
+        "testStrategy": "1. Verify project builds without errors\n2. Ensure TypeScript compilation works\n3. Confirm ESLint runs successfully\n4. Test that the package can be imported in a sample Vue 3 project",
+        "priority": "high",
+        "dependencies": [],
+        "status": "done",
+        "subtasks": [
+          {
+            "id": 1,
+            "title": "Initialize Vue 3 TypeScript Project",
+            "description": "Create a new Vue 3 project with TypeScript support using Vite as the build tool.",
+            "dependencies": [],
+            "details": "Run `npm init vite@latest vue3-object-detection-marker -- --template vue-ts` to create the project. Navigate to the project directory and run `npm install` to install dependencies. Verify the project structure and ensure Vue 3 and TypeScript are properly configured.",
+            "status": "done",
+            "testStrategy": "Verify project creation by running `npm run dev` and confirming the development server starts without errors."
+          },
+          {
+            "id": 2,
+            "title": "Configure TypeScript and Code Quality Tools",
+            "description": "Set up TypeScript configuration with strict type checking and implement ESLint and Prettier for code quality.",
+            "dependencies": [
+              1
+            ],
+            "details": "Update tsconfig.json to enable strict type checking. Install ESLint and Prettier with `npm install --save-dev eslint prettier eslint-plugin-vue @typescript-eslint/parser @typescript-eslint/eslint-plugin eslint-config-prettier`. Create configuration files (.eslintrc.js, .prettierrc) with appropriate rules for Vue 3 and TypeScript projects.",
+            "status": "done",
+            "testStrategy": "Run `npx eslint src` and `npx prettier --check src` to verify configurations are working correctly."
+          },
+          {
+            "id": 3,
+            "title": "Configure Package.json for NPM Publishing",
+            "description": "Update package.json with appropriate metadata for npm publishing including name, version, entry points, and files to include.",
+            "dependencies": [
+              1
+            ],
+            "details": "Edit package.json to include: name: 'vue3-object-detection-marker', version: '0.1.0', description, keywords, author, license, main: 'dist/index.js', module: 'dist/index.esm.js', types: 'dist/index.d.ts', files: ['dist'], repository information, and appropriate scripts for building, testing, and linting.",
+            "status": "done",
+            "testStrategy": "Validate package.json using `npm pack --dry-run` to ensure all required fields are present and correctly formatted."
+          },
+          {
+            "id": 4,
+            "title": "Create Project Folder Structure",
+            "description": "Establish the recommended folder structure for the component library including source code organization.",
+            "dependencies": [
+              1
+            ],
+            "details": "Create the following directory structure: src/ (main source code), src/components/ (Vue components), src/types/ (TypeScript type definitions), src/utils/ (utility functions), src/index.ts (main entry point that exports all components). Add placeholder files in each directory to maintain structure in version control.",
+            "status": "done",
+            "testStrategy": "Verify all directories exist and follow the planned structure using file system checks."
+          },
+          {
+            "id": 5,
+            "title": "Setup Build Configuration for Library Mode",
+            "description": "Configure Rollup or Vite for building the component as a library that can be imported in other projects.",
+            "dependencies": [
+              1,
+              3,
+              4
+            ],
+            "details": "If using Vite, create a vite.config.ts file with library mode configuration. If using Rollup, install rollup and necessary plugins (`npm install --save-dev rollup rollup-plugin-vue @rollup/plugin-node-resolve rollup-plugin-typescript2`) and create a rollup.config.js file. Configure output formats (ESM, CJS, UMD) and ensure TypeScript declarations are generated.",
+            "status": "done",
+            "testStrategy": "Run the build process and verify that all expected output files are generated in the dist directory with correct formats."
+          },
+          {
+            "id": 6,
+            "title": "Implement Vue 3 Plugin Structure",
+            "description": "Create the Vue 3 plugin structure to allow the component to be easily integrated into Vue applications.",
+            "dependencies": [
+              4,
+              5
+            ],
+            "details": "In src/index.ts, implement the Vue 3 plugin pattern with install method. Export both the plugin and individual components to support different import styles. Example: `export { default as ObjectDetectionMarker } from './components/ObjectDetectionMarker.vue'; export default { install: (app) => { app.component('ObjectDetectionMarker', ObjectDetectionMarker); } };`",
+            "status": "done",
+            "testStrategy": "Create a simple test Vue application that imports and uses the plugin to verify it can be properly installed and components are registered correctly."
+          }
+        ]
+      },
+      {
+        "id": 2,
+        "title": "Create Core Component Structure",
+        "description": "Develop the base Vue 3 component structure using Composition API that will serve as the foundation for the object detection marker.",
+        "details": "1. Create the main component file (ObjectDetectionMarker.vue)\n2. Implement using Vue 3 Composition API with <script setup> syntax\n3. Define component props interface:\n```typescript\ninterface Props {\n  image: string | File | Blob; // Support multiple image input types\n  gridSize?: number; // Default to 244x244\n  selectionMode?: 'point' | 'rectangle'; // Default selection mode\n  highlightColor?: string; // Color for selected grids\n  gridColor?: string; // Color for grid lines\n}\n```\n4. Create reactive state variables:\n```typescript\nconst selectedGrids = ref<Set<string>>(new Set());\nconst currentMode = ref<'point' | 'rectangle' | 'eraser'>(props.selectionMode || 'point');\nconst imageLoaded = ref<boolean>(false);\nconst imageElement = ref<HTMLImageElement | null>(null);\n```\n5. Implement basic template structure with canvas element\n6. Export component as both Vue component and plugin\n7. Create necessary type definitions in src/types/",
+        "testStrategy": "1. Unit test the component initialization\n2. Verify props are correctly typed and validated\n3. Test that the component renders without errors\n4. Verify component exports correctly as both component and plugin",
+        "priority": "high",
+        "dependencies": [
+          1
+        ],
+        "status": "done",
+        "subtasks": []
+      },
+      {
+        "id": 3,
+        "title": "Implement Image Loading and Processing",
+        "description": "Create functionality to load and process images from various sources (URL, Base64, Blob, File) and prepare them for rendering on canvas.",
+        "details": "1. Create an image loader utility (src/utils/imageLoader.ts):\n```typescript\nexport async function loadImage(source: string | File | Blob): Promise<HTMLImageElement> {\n  return new Promise((resolve, reject) => {\n    const img = new Image();\n    img.crossOrigin = 'anonymous'; // Handle CORS for URLs\n    \n    img.onload = () => resolve(img);\n    img.onerror = reject;\n    \n    if (typeof source === 'string') {\n      // Handle URL or Base64\n      img.src = source;\n    } else {\n      // Handle File or Blob\n      const url = URL.createObjectURL(source);\n      img.src = url;\n      // Store URL to revoke later\n      img._objectUrl = url;\n    }\n  });\n}\n\nexport function cleanupImage(img: HTMLImageElement): void {\n  if (img._objectUrl) {\n    URL.revokeObjectURL(img._objectUrl);\n  }\n}\n```\n2. Implement a watch effect in the component to load images when the image prop changes\n3. Add image processing functions to handle different aspect ratios\n4. Implement error handling for failed image loads\n5. Add loading state indicators\n6. Optimize image processing for large images using web workers if necessary",
+        "testStrategy": "1. Unit test image loading from different sources\n2. Test error handling for invalid images\n3. Verify CORS handling for remote URLs\n4. Test memory management (URL.revokeObjectURL)\n5. Test with various image sizes and formats (JPG, PNG, WebP)",
+        "priority": "high",
+        "dependencies": [
+          2
+        ],
+        "status": "done",
+        "subtasks": [
+          {
+            "id": 1,
+            "title": "Create Image Loader Utility",
+            "description": "Implement a utility function to load images from various sources (URL, Base64, Blob, File) and handle cleanup.",
+            "dependencies": [],
+            "details": "Create src/utils/imageLoader.ts with loadImage and cleanupImage functions. The loadImage function should handle different source types and return a Promise with the loaded HTMLImageElement. Ensure proper CORS handling for URLs and object URL management for Blobs/Files.\n<info added on 2025-07-14T01:35:43.159Z>\nThe loadImage function should be designed to handle various image source types (URL strings, Blob, or File objects) and return a Promise that resolves to an HTMLImageElement. For URLs, ensure proper CORS handling is implemented. For Blob/File objects, create and manage object URLs appropriately.\n\nAdditionally, implement a cleanupImage function to properly dispose of resources, particularly revoking object URLs when they're no longer needed to prevent memory leaks.\n\nWhen implementing these functions, consider the grid system interaction. The image loading process should be independent from the grid system to ensure proper separation of concerns, allowing components like ObjectDetectionMarker to handle grid-related functionality separately.\n</info added on 2025-07-14T01:35:43.159Z>\n<info added on 2025-07-14T01:59:19.327Z>\nWhen implementing the loadImage function, ensure it works seamlessly with the new resolution-based grid system. The function should load images while preserving their native aspect ratio and dimensions, which are critical for the GCD-based ratio calculations (e.g., 1920x1080 → 16:9).\n\nThe image loader should expose the natural width and height of loaded images to support:\n- Aspect ratio calculation using GCD\n- Resolution multiplier application (1x, 2x, 3x, 4x, 5x)\n- Grid cell count determination based on resolution × base ratio\n\nEnsure the loadImage function returns image metadata alongside the HTMLImageElement to facilitate grid calculations without requiring additional DOM operations. This metadata should include naturalWidth, naturalHeight, and potentially the calculated aspect ratio to optimize performance when the image is used with the updateGridCalculations() function in ObjectDetectionMarker.vue.\n\nThe cleanupImage function should properly handle resource disposal regardless of the resolution settings being used, ensuring no memory leaks occur when switching between different resolution multipliers or when loading new images.\n</info added on 2025-07-14T01:59:19.327Z>",
+            "status": "done",
+            "testStrategy": "Write unit tests for each source type (URL, Base64, Blob, File) and verify proper loading and cleanup."
+          },
+          {
+            "id": 2,
+            "title": "Implement Watch Effect for Image Changes",
+            "description": "Create a reactive mechanism to load images when the image prop changes in the component.",
+            "dependencies": [
+              1
+            ],
+            "details": "Use Vue's watch or watchEffect to monitor changes to the image prop. When changed, call the loadImage utility and update the component state. Handle the loading state and potential errors during this process.",
+            "status": "done",
+            "testStrategy": "Test the watch effect by changing the image prop and verifying the image is loaded correctly."
+          },
+          {
+            "id": 3,
+            "title": "Add Image Processing Functions",
+            "description": "Implement functions to handle different aspect ratios and prepare images for canvas rendering.",
+            "dependencies": [
+              1
+            ],
+            "details": "Create functions to calculate dimensions based on aspect ratio, determine optimal scaling, and prepare the image for canvas rendering. Consider options for contain, cover, and stretch modes to handle different aspect ratios between the image and canvas.",
+            "status": "done",
+            "testStrategy": "Test with images of various dimensions and aspect ratios to ensure proper scaling and positioning."
+          },
+          {
+            "id": 4,
+            "title": "Implement Error Handling and Loading States",
+            "description": "Add comprehensive error handling for image loading failures and implement loading state indicators.",
+            "dependencies": [
+              2
+            ],
+            "details": "Create error handling for network issues, invalid images, and CORS problems. Implement loading state indicators (spinner, placeholder, etc.) to provide visual feedback during image loading. Add retry mechanisms for failed loads where appropriate.",
+            "status": "done",
+            "testStrategy": "Test with intentionally broken image URLs, CORS-restricted resources, and slow network conditions to verify error handling and loading state indicators."
+          },
+          {
+            "id": 5,
+            "title": "Optimize Image Processing for Large Images",
+            "description": "Implement performance optimizations for processing large images, potentially using Web Workers.",
+            "dependencies": [
+              3
+            ],
+            "details": "For large images, implement optimizations such as downsampling before rendering, progressive loading, or offloading processing to Web Workers. Add detection for image size to conditionally apply these optimizations. Consider adding a caching mechanism for processed images to improve performance for repeated operations.",
+            "status": "done",
+            "testStrategy": "Benchmark performance with various image sizes and compare processing times with and without optimizations. Test memory usage patterns to ensure no leaks occur."
+          }
+        ]
+      },
+      {
+        "id": 4,
+        "title": "Implement Canvas Rendering System",
+        "description": "Create a canvas-based rendering system to display the image and overlay the grid system with proper scaling and positioning.",
+        "details": "1. Create a canvas manager class (src/utils/canvasManager.ts):\n```typescript\nexport class CanvasManager {\n  private canvas: HTMLCanvasElement;\n  private ctx: CanvasRenderingContext2D;\n  private image: HTMLImageElement | null = null;\n  private gridSize: number = 244;\n  private scale: number = 1;\n  \n  constructor(canvas: HTMLCanvasElement, gridSize: number = 244) {\n    this.canvas = canvas;\n    this.ctx = canvas.getContext('2d')!;\n    this.gridSize = gridSize;\n  }\n  \n  setImage(image: HTMLImageElement): void {\n    this.image = image;\n    this.resizeCanvas();\n    this.render();\n  }\n  \n  resizeCanvas(): void {\n    if (!this.image) return;\n    \n    this.canvas.width = this.image.width;\n    this.canvas.height = this.image.height;\n    \n    // Calculate scale to fit in container if needed\n    // ...\n  }\n  \n  render(): void {\n    if (!this.image) return;\n    \n    // Clear canvas\n    this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);\n    \n    // Draw image\n    this.ctx.drawImage(this.image, 0, 0);\n    \n    // Draw grid (implemented in another method)\n    this.drawGrid();\n  }\n  \n  drawGrid(): void {\n    // Implementation for drawing grid lines\n  }\n  \n  // Additional methods for handling selections, etc.\n}\n```\n2. Integrate the canvas manager with the Vue component\n3. Implement responsive canvas sizing based on container\n4. Add high DPI / Retina display support\n5. Optimize rendering performance using requestAnimationFrame\n6. Implement proper cleanup on component unmount",
+        "testStrategy": "1. Test canvas initialization and context acquisition\n2. Verify image rendering at different sizes\n3. Test canvas resizing behavior\n4. Measure rendering performance with large images\n5. Test cleanup to prevent memory leaks",
+        "priority": "high",
+        "dependencies": [
+          3
+        ],
+        "status": "done",
+        "subtasks": []
+      },
+      {
+        "id": 5,
+        "title": "Implement Grid System Rendering",
+        "description": "Create the 244x244 pixel grid system with visual indicators for grid boundaries that adapts to different image sizes.",
+        "details": "1. Extend the CanvasManager class with grid rendering functionality:\n```typescript\ndrawGrid(color: string = '#ffffff80'): void {\n  if (!this.image) return;\n  \n  const { width, height } = this.canvas;\n  const gridSize = this.gridSize;\n  \n  this.ctx.strokeStyle = color;\n  this.ctx.lineWidth = 1;\n  \n  // Draw vertical lines\n  for (let x = 0; x <= width; x += gridSize) {\n    this.ctx.beginPath();\n    this.ctx.moveTo(x, 0);\n    this.ctx.lineTo(x, height);\n    this.ctx.stroke();\n  }\n  \n  // Draw horizontal lines\n  for (let y = 0; y <= height; y += gridSize) {\n    this.ctx.beginPath();\n    this.ctx.moveTo(0, y);\n    this.ctx.lineTo(width, y);\n    this.ctx.stroke();\n  }\n}\n```\n2. Implement grid cell calculation functions:\n```typescript\ngetGridCoordinates(x: number, y: number): { row: number, col: number } {\n  return {\n    row: Math.floor(y / this.gridSize),\n    col: Math.floor(x / this.gridSize)\n  };\n}\n\ngetGridKey(row: number, col: number): string {\n  return `${row},${col}`;\n}\n\ngetGridBounds(row: number, col: number): { x: number, y: number, width: number, height: number } {\n  return {\n    x: col * this.gridSize,\n    y: row * this.gridSize,\n    width: this.gridSize,\n    height: this.gridSize\n  };\n}\n```\n3. Add support for partial grid cells at image boundaries\n4. Implement grid visibility toggle\n5. Add grid opacity/color customization\n6. Optimize grid rendering for large images",
+        "testStrategy": "1. Test grid rendering with different image sizes\n2. Verify grid calculations return correct coordinates\n3. Test grid cell identification from pixel coordinates\n4. Verify grid appearance matches the 244x244 requirement\n5. Test grid rendering performance with large images",
+        "priority": "high",
+        "dependencies": [
+          4
+        ],
+        "status": "done",
+        "subtasks": []
+      },
+      {
+        "id": 6,
+        "title": "Implement Point-Based Selection Mode",
+        "description": "Create the point-based selection mode that allows users to select grid cells by dragging the mouse or touch over the image.",
+        "details": "1. Add selection state management to CanvasManager:\n```typescript\nprivate selectedGrids: Set<string> = new Set();\n\ntoggleGridSelection(row: number, col: number): void {\n  const key = this.getGridKey(row, col);\n  if (this.selectedGrids.has(key)) {\n    this.selectedGrids.delete(key);\n  } else {\n    this.selectedGrids.add(key);\n  }\n}\n\nselectGrid(row: number, col: number): void {\n  const key = this.getGridKey(row, col);\n  this.selectedGrids.add(key);\n}\n\ndeselectGrid(row: number, col: number): void {\n  const key = this.getGridKey(row, col);\n  this.selectedGrids.delete(key);\n}\n\nisGridSelected(row: number, col: number): boolean {\n  return this.selectedGrids.has(this.getGridKey(row, col));\n}\n```\n2. Implement mouse/touch event handlers in the Vue component:\n```typescript\nconst handleMouseDown = (event: MouseEvent) => {\n  if (currentMode.value !== 'point') return;\n  isDrawing.value = true;\n  const { offsetX, offsetY } = event;\n  selectGridAtPosition(offsetX, offsetY);\n};\n\nconst handleMouseMove = (event: MouseEvent) => {\n  if (!isDrawing.value) return;\n  const { offsetX, offsetY } = event;\n  selectGridAtPosition(offsetX, offsetY);\n};\n\nconst handleMouseUp = () => {\n  isDrawing.value = false;\n};\n\nconst selectGridAtPosition = (x: number, y: number) => {\n  const { row, col } = canvasManager.value.getGridCoordinates(x, y);\n  if (currentMode.value === 'eraser') {\n    canvasManager.value.deselectGrid(row, col);\n  } else {\n    canvasManager.value.selectGrid(row, col);\n  }\n  canvasManager.value.render();\n};\n```\n3. Add touch event support for mobile devices\n4. Implement continuous selection during drag\n5. Add visual feedback during selection\n6. Optimize selection performance for rapid movements",
+        "testStrategy": "1. Test selection state management functions\n2. Verify mouse event handling correctly selects grid cells\n3. Test touch events on mobile devices\n4. Verify continuous selection during drag operations\n5. Test selection performance with rapid movements\n6. Verify visual feedback matches selection state",
+        "priority": "high",
+        "dependencies": [
+          5
+        ],
+        "status": "done",
+        "subtasks": [
+          {
+            "id": 1,
+            "title": "Implement Selection State Management",
+            "description": "Implement the core selection state management functionality in the CanvasManager class",
+            "dependencies": [],
+            "details": "Implement the methods for managing grid selection state including toggleGridSelection, selectGrid, deselectGrid, isGridSelected, and getGridKey. Ensure the selectedGrids Set is properly initialized and maintained.",
+            "status": "done",
+            "testStrategy": "Write unit tests to verify that grid cells can be selected, deselected, and toggled correctly, and that the isGridSelected method returns the correct state."
+          },
+          {
+            "id": 2,
+            "title": "Implement Mouse Event Handlers",
+            "description": "Create mouse event handlers for point-based selection in the Vue component",
+            "dependencies": [
+              1
+            ],
+            "details": "Implement handleMouseDown, handleMouseMove, and handleMouseUp event handlers that track the mouse position and call the appropriate selection methods. Add logic to check if the current mode is 'point' before processing events.",
+            "status": "done",
+            "testStrategy": "Test the mouse event handlers by simulating mouse events and verifying that the correct grid cells are selected or deselected."
+          },
+          {
+            "id": 3,
+            "title": "Implement Grid Coordinate Calculation",
+            "description": "Create a method to convert screen coordinates to grid coordinates",
+            "dependencies": [
+              1
+            ],
+            "details": "Implement the getGridCoordinates method in CanvasManager that takes x and y screen coordinates and returns the corresponding row and column in the grid. This should account for grid size, padding, and canvas offset.",
+            "status": "done",
+            "testStrategy": "Test with various screen coordinates to ensure they map to the correct grid cells, including edge cases."
+          },
+          {
+            "id": 4,
+            "title": "Add Touch Event Support",
+            "description": "Implement touch event handlers for mobile device support",
+            "dependencies": [
+              2,
+              3
+            ],
+            "details": "Add touchstart, touchmove, and touchend event handlers that mirror the functionality of the mouse event handlers. Handle touch coordinates correctly by accounting for scroll and offset differences between touch and mouse events.",
+            "status": "done",
+            "testStrategy": "Test on mobile devices or with touch event simulation to verify that selection works correctly with touch input."
+          },
+          {
+            "id": 5,
+            "title": "Implement Visual Feedback for Selection",
+            "description": "Add visual indicators for selected grid cells",
+            "dependencies": [
+              1
+            ],
+            "details": "Modify the render method in CanvasManager to visually highlight selected grid cells. This could include changing the cell color, adding a border, or other visual indicators. Ensure the highlighting is clear but doesn't interfere with the underlying image.",
+            "status": "done",
+            "testStrategy": "Visually verify that selected cells are properly highlighted and that the highlighting updates correctly as selections change."
+          },
+          {
+            "id": 6,
+            "title": "Optimize Selection Performance",
+            "description": "Improve performance for rapid selection movements",
+            "dependencies": [
+              2,
+              3,
+              4
+            ],
+            "details": "Implement performance optimizations for handling rapid mouse/touch movements, such as debouncing, throttling, or using requestAnimationFrame. Ensure that all grid cells are properly selected even during fast dragging motions.",
+            "status": "done",
+            "testStrategy": "Perform stress tests with rapid mouse movements to ensure all cells along the path are selected without performance degradation."
+          },
+          {
+            "id": 7,
+            "title": "Implement Selection Mode Toggle",
+            "description": "Add UI controls to switch between selection modes",
+            "dependencies": [
+              5,
+              6
+            ],
+            "details": "Create UI controls that allow users to switch between point selection mode and other modes (like eraser). Update the currentMode reactive property and ensure the appropriate selection behavior is used based on the active mode.",
+            "status": "done",
+            "testStrategy": "Test switching between different modes and verify that the selection behavior changes appropriately."
+          }
+        ]
+      },
+      {
+        "id": 7,
+        "title": "Implement Rectangle Selection Mode",
+        "description": "Create the rectangle selection mode that allows users to select a rectangular area of grid cells by dragging from a start point to an end point.",
+        "details": "1. Add rectangle selection state to component:\n```typescript\nconst selectionStart = ref<{ row: number, col: number } | null>(null);\nconst selectionEnd = ref<{ row: number, col: number } | null>(null);\nconst tempSelectedGrids = ref<Set<string>>(new Set());\n```\n2. Implement rectangle selection handlers:\n```typescript\nconst handleRectangleStart = (event: MouseEvent) => {\n  if (currentMode.value !== 'rectangle') return;\n  isDrawing.value = true;\n  const { offsetX, offsetY } = event;\n  const coords = canvasManager.value.getGridCoordinates(offsetX, offsetY);\n  selectionStart.value = coords;\n  selectionEnd.value = coords;\n  updateRectangleSelection();\n};\n\nconst handleRectangleMove = (event: MouseEvent) => {\n  if (!isDrawing.value || currentMode.value !== 'rectangle') return;\n  const { offsetX, offsetY } = event;\n  selectionEnd.value = canvasManager.value.getGridCoordinates(offsetX, offsetY);\n  updateRectangleSelection();\n};\n\nconst handleRectangleEnd = () => {\n  if (currentMode.value !== 'rectangle') return;\n  isDrawing.value = false;\n  \n  // Commit temporary selection to permanent selection\n  tempSelectedGrids.value.forEach(key => {\n    const [row, col] = key.split(',').map(Number);\n    canvasManager.value.selectGrid(row, col);\n  });\n  \n  tempSelectedGrids.value.clear();\n  selectionStart.value = null;\n  selectionEnd.value = null;\n  canvasManager.value.render();\n};\n\nconst updateRectangleSelection = () => {\n  if (!selectionStart.value || !selectionEnd.value) return;\n  \n  tempSelectedGrids.value.clear();\n  \n  const startRow = Math.min(selectionStart.value.row, selectionEnd.value.row);\n  const endRow = Math.max(selectionStart.value.row, selectionEnd.value.row);\n  const startCol = Math.min(selectionStart.value.col, selectionEnd.value.col);\n  const endCol = Math.max(selectionStart.value.col, selectionEnd.value.col);\n  \n  for (let row = startRow; row <= endRow; row++) {\n    for (let col = startCol; col <= endCol; col++) {\n      tempSelectedGrids.value.add(canvasManager.value.getGridKey(row, col));\n    }\n  }\n  \n  // Render with temporary selection\n  renderWithTemporarySelection();\n};\n```\n3. Add visual feedback for rectangle selection\n4. Implement mode switching between point and rectangle\n5. Add touch support for rectangle selection\n6. Optimize rectangle selection for large areas",
+        "testStrategy": "1. Test rectangle selection calculations\n2. Verify rectangle selection correctly identifies all cells in the rectangle\n3. Test mode switching between point and rectangle modes\n4. Verify touch support works on mobile devices\n5. Test selection of large rectangular areas\n6. Verify visual feedback during rectangle selection",
+        "priority": "medium",
+        "dependencies": [
+          6
+        ],
+        "status": "done",
+        "subtasks": []
+      },
+      {
+        "id": 8,
+        "title": "Implement Eraser Functionality",
+        "description": "Create the eraser tool that allows users to deselect previously selected grid cells by dragging over them.",
+        "details": "1. Add eraser mode to the component state:\n```typescript\nconst currentMode = ref<'point' | 'rectangle' | 'eraser'>(props.selectionMode || 'point');\n```\n2. Implement eraser mode toggle function:\n```typescript\nconst toggleEraserMode = () => {\n  currentMode.value = currentMode.value === 'eraser' ? \n    (props.selectionMode || 'point') : 'eraser';\n};\n```\n3. Modify the existing selection handlers to support eraser mode:\n```typescript\nconst selectGridAtPosition = (x: number, y: number) => {\n  const { row, col } = canvasManager.value.getGridCoordinates(x, y);\n  if (currentMode.value === 'eraser') {\n    canvasManager.value.deselectGrid(row, col);\n  } else {\n    canvasManager.value.selectGrid(row, col);\n  }\n  canvasManager.value.render();\n};\n```\n4. Add visual indicator for eraser mode (cursor change)\n5. Implement eraser size option for more precise or broader erasing\n6. Add touch support for eraser functionality\n7. Optimize eraser performance for continuous use",
+        "testStrategy": "1. Test eraser mode toggle functionality\n2. Verify eraser correctly deselects grid cells\n3. Test eraser with different selection modes\n4. Verify visual indicators for eraser mode\n5. Test eraser on touch devices\n6. Verify eraser performance with continuous use",
+        "priority": "medium",
+        "dependencies": [
+          6
+        ],
+        "status": "done",
+        "subtasks": []
+      },
+      {
+        "id": 9,
+        "title": "Implement Visual Feedback System",
+        "description": "Create a comprehensive visual feedback system that highlights selected grid cells, shows grid boundaries, and provides real-time feedback during selection operations.",
+        "details": "1. Extend the CanvasManager to render selected grids:\n```typescript\ndrawSelectedGrids(color: string = 'rgba(0, 123, 255, 0.5)'): void {\n  this.ctx.fillStyle = color;\n  \n  this.selectedGrids.forEach(key => {\n    const [row, col] = key.split(',').map(Number);\n    const { x, y, width, height } = this.getGridBounds(row, col);\n    this.ctx.fillRect(x, y, width, height);\n  });\n}\n\ndrawTemporarySelection(tempGrids: Set<string>, color: string = 'rgba(255, 123, 0, 0.5)'): void {\n  this.ctx.fillStyle = color;\n  \n  tempGrids.forEach(key => {\n    const [row, col] = key.split(',').map(Number);\n    const { x, y, width, height } = this.getGridBounds(row, col);\n    this.ctx.fillRect(x, y, width, height);\n  });\n}\n\nrender(): void {\n  if (!this.image) return;\n  \n  // Clear canvas\n  this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);\n  \n  // Draw image\n  this.ctx.drawImage(this.image, 0, 0);\n  \n  // Draw selected grids\n  this.drawSelectedGrids();\n  \n  // Draw grid\n  this.drawGrid();\n}\n```\n2. Implement cursor style changes based on current mode\n3. Add hover effects for grid cells\n4. Implement visual indicators for current mode (point/rectangle/eraser)\n5. Add animation effects for selection/deselection\n6. Implement color customization for different visual elements\n7. Ensure high contrast for accessibility",
+        "testStrategy": "1. Test rendering of selected grid cells\n2. Verify visual feedback during selection operations\n3. Test cursor style changes based on mode\n4. Verify hover effects work correctly\n5. Test visual indicators for different modes\n6. Verify color customization works\n7. Test accessibility with different color schemes",
+        "priority": "medium",
+        "dependencies": [
+          5,
+          6,
+          7,
+          8
+        ],
+        "status": "done",
+        "subtasks": [
+          {
+            "id": 1,
+            "title": "Implement Grid Highlighting System",
+            "description": "Enhance the CanvasManager to properly render selected and temporarily selected grid cells with appropriate visual styling.",
+            "dependencies": [],
+            "details": "Refine the existing drawSelectedGrids and drawTemporarySelection methods to ensure proper rendering of selected cells. Add visual distinction between permanent and temporary selections. Ensure the render method properly calls these methods in the correct order. Test with different grid sizes and selection patterns.",
+            "status": "done",
+            "testStrategy": "Verify selected grids appear with correct color and opacity. Test with multiple selections and ensure they render correctly. Check that temporary selections are visually distinct from permanent ones."
+          },
+          {
+            "id": 2,
+            "title": "Add Interactive Hover Effects",
+            "description": "Implement hover effects for grid cells to provide immediate visual feedback when users interact with the grid.",
+            "dependencies": [
+              1
+            ],
+            "details": "Create a new method in CanvasManager to handle hover effects. Track the currently hovered cell using mouse movement events. Implement a subtle highlight effect that doesn't interfere with selection highlighting. Add event listeners for mouseenter and mouseleave on grid cells. Ensure hover effects are disabled during drag operations.",
+            "status": "done",
+            "testStrategy": "Test hover effects across different grid sizes. Verify hover effects appear and disappear correctly when mouse enters and leaves cells. Ensure hover effects don't conflict with selection highlighting."
+          },
+          {
+            "id": 3,
+            "title": "Implement Mode-Based Visual Indicators",
+            "description": "Create visual indicators that clearly show the current selection mode (point, rectangle, or eraser) to improve user experience.",
+            "dependencies": [],
+            "details": "Design and implement distinct cursor styles for each mode (point/rectangle/eraser). Add a mode indicator in a corner of the canvas that shows the current active mode with an icon. Implement smooth transitions between mode indicators. Ensure high contrast for accessibility. Update indicators in real-time when mode changes.",
+            "status": "done",
+            "testStrategy": "Verify cursor changes appropriately for each mode. Test that mode indicators are clearly visible and accurately reflect the current mode. Check that transitions between modes are smooth and intuitive."
+          },
+          {
+            "id": 4,
+            "title": "Add Selection Animation Effects",
+            "description": "Implement subtle animation effects for selection and deselection operations to provide better visual feedback to users.",
+            "dependencies": [
+              1
+            ],
+            "details": "Create animation effects for newly selected cells (e.g., fade-in or pulse effect). Implement deselection animations (e.g., fade-out effect). Use requestAnimationFrame for smooth animations. Ensure animations are subtle and don't distract from the main functionality. Add option to disable animations for users who prefer no animations.",
+            "status": "done",
+            "testStrategy": "Test animation performance with large numbers of selections/deselections. Verify animations work correctly across different browsers. Ensure animations complete properly and don't interfere with subsequent operations."
+          },
+          {
+            "id": 5,
+            "title": "Implement Visual Customization Options",
+            "description": "Create a system for customizing colors and visual properties of the feedback system while ensuring accessibility standards are met.",
+            "dependencies": [
+              1,
+              2,
+              3,
+              4
+            ],
+            "details": "Implement color customization for grid lines, selection highlights, hover effects, and mode indicators. Create a settings interface for users to adjust visual properties. Store user preferences in localStorage. Ensure all color combinations meet WCAG 2.1 AA contrast requirements. Provide preset high-contrast themes for accessibility. Add preview functionality for visual changes before applying them.",
+            "status": "done",
+            "testStrategy": "Test color customization with various combinations. Verify that preferences are correctly saved and loaded. Check contrast ratios against accessibility standards. Test with screen readers and other assistive technologies."
+          }
+        ]
+      },
+      {
+        "id": 10,
+        "title": "Implement Mode Switching Interface",
+        "description": "Create an interface for switching between different selection modes (point-based, rectangle, eraser) with visual indicators and keyboard shortcuts.",
+        "details": "1. Add mode switching methods to the component:\n```typescript\nconst setMode = (mode: 'point' | 'rectangle' | 'eraser') => {\n  currentMode.value = mode;\n  // Reset any active operations\n  isDrawing.value = false;\n  selectionStart.value = null;\n  selectionEnd.value = null;\n  tempSelectedGrids.value.clear();\n};\n```\n2. Implement keyboard shortcuts:\n```typescript\nonMounted(() => {\n  window.addEventListener('keydown', handleKeyDown);\n});\n\nonUnmounted(() => {\n  window.removeEventListener('keydown', handleKeyDown);\n});\n\nconst handleKeyDown = (event: KeyboardEvent) => {\n  switch(event.key) {\n    case 'p':\n      setMode('point');\n      break;\n    case 'r':\n      setMode('rectangle');\n      break;\n    case 'e':\n      setMode('eraser');\n      break;\n  }\n};\n```\n3. Create mode indicator component:\n```vue\n<div class=\"mode-indicator\">\n  <button \n    :class=\"{ active: currentMode === 'point' }\" \n    @click=\"setMode('point')\"\n    title=\"Point Selection Mode (P)\"\n  >\n    <span>Point</span>\n  </button>\n  <button \n    :class=\"{ active: currentMode === 'rectangle' }\" \n    @click=\"setMode('rectangle')\"\n    title=\"Rectangle Selection Mode (R)\"\n  >\n    <span>Rectangle</span>\n  </button>\n  <button \n    :class=\"{ active: currentMode === 'eraser' }\" \n    @click=\"setMode('eraser')\"\n    title=\"Eraser Mode (E)\"\n  >\n    <span>Eraser</span>\n  </button>\n</div>\n```\n4. Add CSS for mode indicators\n5. Implement tooltips for mode buttons\n6. Add visual feedback when mode changes\n7. Make mode switching interface optional/hideable",
+        "testStrategy": "1. Test mode switching functionality\n2. Verify keyboard shortcuts work correctly\n3. Test mode indicator UI updates\n4. Verify tooltips display correctly\n5. Test visual feedback during mode changes\n6. Verify mode switching works on mobile devices\n7. Test hiding/showing mode interface",
+        "priority": "medium",
+        "dependencies": [
+          6,
+          7,
+          8
+        ],
+        "status": "done",
+        "subtasks": []
+      },
+      {
+        "id": 11,
+        "title": "Implement Selection Data Export",
+        "description": "Create functionality to export the selected grid data in a structured format (JSON) with coordinates, metadata, and relative position information.",
+        "details": "1. Add data export methods to the component:\n```typescript\nconst getSelectionData = (): SelectionData => {\n  const gridData: GridCell[] = [];\n  const totalGrids = Math.ceil(imageElement.value!.width / props.gridSize) * \n                    Math.ceil(imageElement.value!.height / props.gridSize);\n  \n  canvasManager.value.getSelectedGrids().forEach(key => {\n    const [row, col] = key.split(',').map(Number);\n    const bounds = canvasManager.value.getGridBounds(row, col);\n    \n    gridData.push({\n      row,\n      col,\n      key,\n      bounds: {\n        x: bounds.x,\n        y: bounds.y,\n        width: bounds.width,\n        height: bounds.height\n      },\n      // Relative positions (0-1 range)\n      relativePosition: {\n        x: bounds.x / imageElement.value!.width,\n        y: bounds.y / imageElement.value!.height,\n        width: bounds.width / imageElement.value!.width,\n        height: bounds.height / imageElement.value!.height\n      }\n    });\n  });\n  \n  return {\n    imageSize: {\n      width: imageElement.value!.width,\n      height: imageElement.value!.height\n    },\n    gridSize: props.gridSize,\n    totalGrids,\n    selectedGrids: gridData.length,\n    selectionRatio: gridData.length / totalGrids,\n    gridData\n  };\n};\n\nconst exportSelectionAsJSON = () => {\n  const data = getSelectionData();\n  const json = JSON.stringify(data, null, 2);\n  const blob = new Blob([json], { type: 'application/json' });\n  const url = URL.createObjectURL(blob);\n  \n  const a = document.createElement('a');\n  a.href = url;\n  a.download = 'selection-data.json';\n  a.click();\n  \n  URL.revokeObjectURL(url);\n};\n```\n2. Define TypeScript interfaces for the export data:\n```typescript\ninterface GridCell {\n  row: number;\n  col: number;\n  key: string;\n  bounds: {\n    x: number;\n    y: number;\n    width: number;\n    height: number;\n  };\n  relativePosition: {\n    x: number;\n    y: number;\n    width: number;\n    height: number;\n  };\n}\n\ninterface SelectionData {\n  imageSize: {\n    width: number;\n    height: number;\n  };\n  gridSize: number;\n  totalGrids: number;\n  selectedGrids: number;\n  selectionRatio: number;\n  gridData: GridCell[];\n}\n```\n3. Add export button to the UI\n4. Implement event emission for selection changes\n5. Add option to export as CSV format\n6. Implement selection data preview",
+        "testStrategy": "1. Test data export format correctness\n2. Verify relative position calculations\n3. Test JSON export functionality\n4. Verify event emissions on selection changes\n5. Test with various selection patterns\n6. Verify export works with large selections\n7. Test data format compatibility with common tools",
+        "priority": "medium",
+        "dependencies": [
+          6,
+          7,
+          8
+        ],
+        "status": "done",
+        "subtasks": []
+      },
+      {
+        "id": 12,
+        "title": "Implement Selection Statistics Display",
+        "description": "Create a component to display statistics about the current selection, including number of selected cells, percentage of image covered, and other relevant metrics.",
+        "details": "1. Create a statistics component:\n```vue\n<template>\n  <div class=\"selection-statistics\">\n    <div class=\"stat-item\">\n      <span class=\"stat-label\">Selected:</span>\n      <span class=\"stat-value\">{{ selectedCount }}</span>\n    </div>\n    <div class=\"stat-item\">\n      <span class=\"stat-label\">Total Grids:</span>\n      <span class=\"stat-value\">{{ totalGrids }}</span>\n    </div>\n    <div class=\"stat-item\">\n      <span class=\"stat-label\">Coverage:</span>\n      <span class=\"stat-value\">{{ coveragePercentage }}%</span>\n    </div>\n  </div>\n</template>\n\n<script setup lang=\"ts\">\nimport { computed } from 'vue';\n\nconst props = defineProps<{\n  selectedCount: number;\n  totalGrids: number;\n}>();\n\nconst coveragePercentage = computed(() => {\n  if (props.totalGrids === 0) return '0.00';\n  return ((props.selectedCount / props.totalGrids) * 100).toFixed(2);\n});\n</script>\n```\n2. Integrate statistics component with main component\n3. Add reactive updates when selection changes\n4. Implement additional statistics (e.g., selected area dimensions)\n5. Add option to show/hide statistics\n6. Style statistics display for better visibility",
+        "testStrategy": "1. Test statistics calculations\n2. Verify reactive updates when selection changes\n3. Test with edge cases (no selection, all selected)\n4. Verify statistics display formatting\n5. Test show/hide functionality\n6. Verify statistics accuracy with different selection patterns",
+        "priority": "low",
+        "dependencies": [
+          11
+        ],
+        "status": "done",
+        "subtasks": []
+      },
+      {
+        "id": 13,
+        "title": "Implement Touch Support and Mobile Optimization",
+        "description": "Optimize the component for touch devices with proper touch event handling, mobile-friendly UI, and responsive design considerations.",
+        "details": "1. Add touch event handlers to the component:\n```typescript\nconst handleTouchStart = (event: TouchEvent) => {\n  event.preventDefault(); // Prevent scrolling\n  if (event.touches.length !== 1) return;\n  \n  const touch = event.touches[0];\n  const rect = canvasRef.value!.getBoundingClientRect();\n  const x = touch.clientX - rect.left;\n  const y = touch.clientY - rect.top;\n  \n  if (currentMode.value === 'rectangle') {\n    handleRectangleStart({ offsetX: x, offsetY: y } as MouseEvent);\n  } else {\n    handleMouseDown({ offsetX: x, offsetY: y } as MouseEvent);\n  }\n};\n\nconst handleTouchMove = (event: TouchEvent) => {\n  event.preventDefault();\n  if (event.touches.length !== 1) return;\n  \n  const touch = event.touches[0];\n  const rect = canvasRef.value!.getBoundingClientRect();\n  const x = touch.clientX - rect.left;\n  const y = touch.clientY - rect.top;\n  \n  if (currentMode.value === 'rectangle') {\n    handleRectangleMove({ offsetX: x, offsetY: y } as MouseEvent);\n  } else {\n    handleMouseMove({ offsetX: x, offsetY: y } as MouseEvent);\n  }\n};\n\nconst handleTouchEnd = (event: TouchEvent) => {\n  event.preventDefault();\n  if (currentMode.value === 'rectangle') {\n    handleRectangleEnd();\n  } else {\n    handleMouseUp();\n  }\n};\n```\n2. Add touch event listeners to canvas:\n```vue\n<canvas\n  ref=\"canvasRef\"\n  @mousedown=\"handleMouseDown\"\n  @mousemove=\"handleMouseMove\"\n  @mouseup=\"handleMouseUp\"\n  @mouseleave=\"handleMouseUp\"\n  @touchstart=\"handleTouchStart\"\n  @touchmove=\"handleTouchMove\"\n  @touchend=\"handleTouchEnd\"\n  @touchcancel=\"handleTouchEnd\"\n></canvas>\n```\n3. Implement pinch-to-zoom functionality\n4. Add mobile-friendly UI controls (larger touch targets)\n5. Optimize for different screen sizes with responsive design\n6. Implement touch feedback indicators\n7. Add mobile detection for automatic UI adjustments",
+        "testStrategy": "1. Test touch event handling on various mobile devices\n2. Verify pinch-to-zoom functionality\n3. Test on different screen sizes and orientations\n4. Verify mobile UI controls are accessible\n5. Test performance on lower-powered mobile devices\n6. Verify touch feedback indicators work correctly\n7. Test with various mobile browsers (Chrome, Safari, Firefox)",
+        "priority": "medium",
+        "dependencies": [
+          6,
+          7,
+          8,
+          9
+        ],
+        "status": "done",
+        "subtasks": []
+      },
+      {
+        "id": 14,
+        "title": "Implement Undo/Redo Functionality",
+        "description": "Create an undo/redo system that allows users to reverse or reapply their selection actions with keyboard shortcuts and UI controls.",
+        "details": "1. Implement history management in the component:\n```typescript\nconst history = ref<Array<Set<string>>>([new Set()]);\nconst historyIndex = ref<number>(0);\n\nconst saveToHistory = () => {\n  // Remove any forward history if we're not at the end\n  if (historyIndex.value < history.value.length - 1) {\n    history.value = history.value.slice(0, historyIndex.value + 1);\n  }\n  \n  // Clone current selection and add to history\n  const currentSelection = new Set(canvasManager.value.getSelectedGrids());\n  history.value.push(currentSelection);\n  historyIndex.value++;\n};\n\nconst undo = () => {\n  if (historyIndex.value > 0) {\n    historyIndex.value--;\n    const previousState = new Set(history.value[historyIndex.value]);\n    canvasManager.value.setSelectedGrids(previousState);\n    canvasManager.value.render();\n  }\n};\n\nconst redo = () => {\n  if (historyIndex.value < history.value.length - 1) {\n    historyIndex.value++;\n    const nextState = new Set(history.value[historyIndex.value]);\n    canvasManager.value.setSelectedGrids(nextState);\n    canvasManager.value.render();\n  }\n};\n```\n2. Add keyboard shortcut handlers:\n```typescript\nconst handleKeyDown = (event: KeyboardEvent) => {\n  // Existing key handlers...\n  \n  // Add undo/redo shortcuts\n  if (event.ctrlKey || event.metaKey) {\n    if (event.key === 'z') {\n      event.preventDefault();\n      undo();\n    } else if (event.key === 'y' || (event.shiftKey && event.key === 'z')) {\n      event.preventDefault();\n      redo();\n    }\n  }\n};\n```\n3. Add UI controls for undo/redo\n4. Modify selection handlers to save state to history\n5. Implement history size limits to prevent memory issues\n6. Add visual feedback for undo/redo operations\n7. Implement history clearing on new image load",
+        "testStrategy": "1. Test undo functionality restores previous states\n2. Verify redo functionality works after undo\n3. Test keyboard shortcuts for undo/redo\n4. Verify history management with complex selection sequences\n5. Test history size limits\n6. Verify history clearing on new image load\n7. Test performance with large history stacks",
+        "priority": "low",
+        "dependencies": [
+          6,
+          7,
+          8
+        ],
+        "status": "deferred",
+        "subtasks": []
+      },
+      {
+        "id": 15,
+        "title": "Implement Selection Import/Export",
+        "description": "Create functionality to save and load selection patterns, allowing users to reuse selections across different images or sessions.",
+        "details": "1. Implement selection export function:\n```typescript\nconst exportSelection = (): SelectionPattern => {\n  const selectedKeys = Array.from(canvasManager.value.getSelectedGrids());\n  const imageWidth = imageElement.value!.width;\n  const imageHeight = imageElement.value!.height;\n  \n  return {\n    version: '1.0',\n    timestamp: new Date().toISOString(),\n    imageSize: { width: imageWidth, height: imageHeight },\n    gridSize: props.gridSize,\n    selectedGrids: selectedKeys.map(key => {\n      const [row, col] = key.split(',').map(Number);\n      return { row, col };\n    })\n  };\n};\n\nconst saveSelectionToFile = () => {\n  const data = exportSelection();\n  const json = JSON.stringify(data, null, 2);\n  const blob = new Blob([json], { type: 'application/json' });\n  const url = URL.createObjectURL(blob);\n  \n  const a = document.createElement('a');\n  a.href = url;\n  a.download = 'selection-pattern.json';\n  a.click();\n  \n  URL.revokeObjectURL(url);\n};\n```\n2. Implement selection import function:\n```typescript\nconst importSelection = (pattern: SelectionPattern) => {\n  // Clear current selection\n  canvasManager.value.clearSelection();\n  \n  // Calculate scaling factors if image sizes differ\n  const scaleX = imageElement.value!.width / pattern.imageSize.width;\n  const scaleY = imageElement.value!.height / pattern.imageSize.height;\n  \n  // Apply selection with scaling if needed\n  pattern.selectedGrids.forEach(grid => {\n    const row = Math.floor(grid.row * scaleY);\n    const col = Math.floor(grid.col * scaleX);\n    canvasManager.value.selectGrid(row, col);\n  });\n  \n  canvasManager.value.render();\n  saveToHistory();\n};\n\nconst loadSelectionFromFile = (event: Event) => {\n  const input = event.target as HTMLInputElement;\n  if (!input.files || input.files.length === 0) return;\n  \n  const file = input.files[0];\n  const reader = new FileReader();\n  \n  reader.onload = (e) => {\n    try {\n      const pattern = JSON.parse(e.target!.result as string) as SelectionPattern;\n      importSelection(pattern);\n    } catch (error) {\n      console.error('Failed to parse selection pattern:', error);\n      // Show error to user\n    }\n  };\n  \n  reader.readAsText(file);\n};\n```\n3. Define TypeScript interface for selection pattern:\n```typescript\ninterface SelectionPattern {\n  version: string;\n  timestamp: string;\n  imageSize: {\n    width: number;\n    height: number;\n  };\n  gridSize: number;\n  selectedGrids: Array<{\n    row: number;\n    col: number;\n  }>;\n}\n```\n4. Add UI controls for import/export\n5. Implement pattern scaling for different image sizes\n6. Add pattern preview before applying\n7. Implement pattern library for storing common patterns",
+        "testStrategy": "1. Test export functionality produces valid JSON\n2. Verify import correctly restores selection patterns\n3. Test scaling behavior with different image sizes\n4. Verify error handling for invalid import files\n5. Test UI controls for import/export\n6. Verify pattern preview functionality\n7. Test with complex selection patterns",
+        "priority": "low",
+        "dependencies": [
+          11
+        ],
+        "status": "done",
+        "subtasks": []
+      },
+      {
+        "id": 16,
+        "title": "Implement Custom Theming and Appearance Options",
+        "description": "Create a theming system that allows customization of colors, grid appearance, selection highlights, and other visual aspects of the component.",
+        "details": "1. Extend component props with theming options:\n```typescript\ninterface Props {\n  // Existing props...\n  \n  // Theming options\n  gridColor?: string; // Default: 'rgba(255, 255, 255, 0.5)'\n  gridThickness?: number; // Default: 1\n  selectionColor?: string; // Default: 'rgba(0, 123, 255, 0.5)'\n  tempSelectionColor?: string; // Default: 'rgba(255, 123, 0, 0.5)'\n  eraserColor?: string; // Default: 'rgba(255, 0, 0, 0.5)'\n  showGrid?: boolean; // Default: true\n  theme?: 'light' | 'dark' | 'custom'; // Default: 'light'\n}\n```\n2. Implement theme application in the CanvasManager:\n```typescript\nupdateTheme(options: ThemeOptions): void {\n  this.gridColor = options.gridColor || 'rgba(255, 255, 255, 0.5)';\n  this.gridThickness = options.gridThickness || 1;\n  this.selectionColor = options.selectionColor || 'rgba(0, 123, 255, 0.5)';\n  this.tempSelectionColor = options.tempSelectionColor || 'rgba(255, 123, 0, 0.5)';\n  this.showGrid = options.showGrid !== undefined ? options.showGrid : true;\n  \n  // Re-render with new theme\n  this.render();\n}\n```\n3. Create preset themes:\n```typescript\nconst themes = {\n  light: {\n    gridColor: 'rgba(0, 0, 0, 0.3)',\n    selectionColor: 'rgba(0, 123, 255, 0.5)',\n    tempSelectionColor: 'rgba(255, 123, 0, 0.5)',\n    eraserColor: 'rgba(255, 0, 0, 0.3)'\n  },\n  dark: {\n    gridColor: 'rgba(255, 255, 255, 0.3)',\n    selectionColor: 'rgba(0, 183, 255, 0.5)',\n    tempSelectionColor: 'rgba(255, 183, 0, 0.5)',\n    eraserColor: 'rgba(255, 50, 50, 0.3)'\n  }\n};\n```\n4. Add theme switching functionality\n5. Implement CSS variables for component styling\n6. Add theme customization UI\n7. Implement theme persistence using localStorage",
+        "testStrategy": "1. Test theme application changes visual appearance\n2. Verify all customizable properties work correctly\n3. Test preset themes (light/dark)\n4. Verify theme switching during runtime\n5. Test theme persistence\n6. Verify theme customization UI\n7. Test with various color combinations for accessibility",
+        "priority": "low",
+        "dependencies": [
+          9
+        ],
+        "status": "deferred",
+        "subtasks": []
+      },
+      {
+        "id": 17,
+        "title": "Implement Performance Optimizations",
+        "description": "Optimize the component for performance with large images, many grid cells, and complex selection patterns using various optimization techniques.",
+        "details": "1. Implement canvas rendering optimizations:\n```typescript\nprivate lastRenderTime: number = 0;\nprivate renderRequested: boolean = false;\n\nrequestRender(): void {\n  if (this.renderRequested) return;\n  \n  this.renderRequested = true;\n  requestAnimationFrame(() => {\n    this.render();\n    this.renderRequested = false;\n    this.lastRenderTime = performance.now();\n  });\n}\n\nrender(): void {\n  // Only render if enough time has passed since last render\n  const now = performance.now();\n  if (now - this.lastRenderTime < 16) { // ~60fps\n    this.requestRender();\n    return;\n  }\n  \n  // Existing render code...\n}\n```\n2. Implement grid cell caching:\n```typescript\nprivate gridCache: Map<string, { x: number, y: number, width: number, height: number }> = new Map();\n\ngetGridBounds(row: number, col: number): { x: number, y: number, width: number, height: number } {\n  const key = this.getGridKey(row, col);\n  \n  if (!this.gridCache.has(key)) {\n    const bounds = {\n      x: col * this.gridSize,\n      y: row * this.gridSize,\n      width: this.gridSize,\n      height: this.gridSize\n    };\n    this.gridCache.set(key, bounds);\n  }\n  \n  return this.gridCache.get(key)!;\n}\n\nresizeCanvas(): void {\n  // Existing resize code...\n  \n  // Clear grid cache when canvas size changes\n  this.gridCache.clear();\n}\n```\n3. Implement selection operation batching\n4. Add worker thread for heavy calculations\n5. Implement image downscaling for very large images\n6. Add lazy loading for UI components\n7. Implement render area clipping for partial updates",
+        "testStrategy": "1. Benchmark rendering performance with large images\n2. Test memory usage with many grid cells\n3. Verify performance with complex selection patterns\n4. Test worker thread performance improvements\n5. Verify image downscaling quality and performance\n6. Test UI responsiveness during heavy operations\n7. Benchmark with various devices and browsers",
+        "priority": "medium",
+        "dependencies": [
+          4,
+          5,
+          6,
+          7,
+          8,
+          9
+        ],
+        "status": "pending",
+        "subtasks": []
+      },
+      {
+        "id": 18,
+        "title": "Create Demo Application and Documentation",
+        "description": "Develop a comprehensive demo application and documentation to showcase the component's features, usage examples, and API reference.",
+        "details": "1. Create a demo application structure:\n```\ndemo/\n  ├── src/\n  │   ├── App.vue         # Main demo application\n  │   ├── components/     # Demo-specific components\n  │   ├── assets/         # Demo images and resources\n  │   └── main.ts         # Entry point\n  ├── public/\n  │   └── index.html      # Demo HTML template\n  └── package.json        # Demo dependencies\n```\n2. Implement demo features:\n   - Image upload from file\n   - Image URL input\n   - Mode switching UI\n   - Selection statistics display\n   - Export/import functionality\n   - Theme customization\n   - Example usage patterns\n3. Create comprehensive documentation:\n   - Installation instructions\n   - Basic usage examples\n   - API reference\n   - Props documentation\n   - Events documentation\n   - Advanced usage examples\n   - Performance tips\n4. Add interactive examples in documentation\n5. Create TypeScript type documentation\n6. Implement automated documentation generation\n7. Add browser compatibility information",
+        "testStrategy": "1. Test demo application functionality\n2. Verify all features are demonstrated\n3. Test documentation accuracy\n4. Verify installation instructions work\n5. Test examples in documentation\n6. Verify API reference completeness\n7. Test demo application in various browsers",
+        "priority": "medium",
+        "dependencies": [
+          1,
+          2,
+          3,
+          4,
+          5,
+          6,
+          7,
+          8,
+          9,
+          10,
+          11
+        ],
+        "status": "pending",
+        "subtasks": []
+      },
+      {
+        "id": 19,
+        "title": "Implement Color-Based Layer System",
+        "description": "Create a layering system where each color has an independent layer, allowing users to switch between color layers and make selections without affecting other color layers.",
+        "details": "1. Extend the current selection state to support multiple color layers:\n```typescript\ninterface ColorLayer {\n  color: string;\n  selectedGrids: Set<string>;\n  visible: boolean;\n}\n\n// Add to component state\nconst colorLayers = ref<Map<string, ColorLayer>>(new Map());\nconst activeColorLayer = ref<string>('#000000'); // Default black\n\n// Initialize with basic colors\nconst initColorLayers = () => {\n  const defaultColors = ['#000000', '#FF0000', '#00FF00', '#0000FF', '#FFFF00', '#FF00FF', '#00FFFF'];\n  defaultColors.forEach(color => {\n    colorLayers.value.set(color, {\n      color,\n      selectedGrids: new Set<string>(),\n      visible: true\n    });\n  });\n};\n```\n\n2. Modify the CanvasManager to support color-based rendering:\n```typescript\nclass CanvasManager {\n  // Existing properties...\n  \n  // Add color layer rendering\n  renderColorLayers(layers: Map<string, ColorLayer>): void {\n    this.clearSelection(); // Clear previous rendering\n    \n    // Render each visible layer\n    layers.forEach(layer => {\n      if (!layer.visible) return;\n      \n      this.ctx.fillStyle = layer.color;\n      layer.selectedGrids.forEach(gridKey => {\n        const [row, col] = gridKey.split(',').map(Number);\n        const bounds = this.getGridBounds(row, col);\n        this.ctx.fillRect(bounds.x, bounds.y, bounds.width, bounds.height);\n      });\n    });\n  }\n}\n```\n\n3. Update selection methods to work with the active color layer:\n```typescript\nconst toggleGridSelection = (row: number, col: number) => {\n  const key = canvasManager.value.getGridKey(row, col);\n  const layer = colorLayers.value.get(activeColorLayer.value);\n  \n  if (!layer) return;\n  \n  if (layer.selectedGrids.has(key)) {\n    layer.selectedGrids.delete(key);\n  } else {\n    layer.selectedGrids.add(key);\n  }\n  \n  // Re-render all visible layers\n  canvasManager.value.renderColorLayers(colorLayers.value);\n};\n```\n\n4. Implement layer switching UI:\n```vue\n<template>\n  <div class=\"color-layer-controls\">\n    <div \n      v-for=\"(layer, color) in colorLayers\" \n      :key=\"color\"\n      class=\"color-layer-button\"\n      :class=\"{ active: activeColorLayer === color }\"\n      :style=\"{ backgroundColor: color }\"\n      @click=\"setActiveColorLayer(color)\"\n    >\n      <span class=\"visibility-toggle\" @click.stop=\"toggleLayerVisibility(color)\">\n        {{ layer.visible ? '👁️' : '👁️‍🗨️' }}\n      </span>\n    </div>\n    <button @click=\"addCustomColorLayer\">+</button>\n  </div>\n</template>\n```\n\n5. Add layer management methods:\n```typescript\nconst setActiveColorLayer = (color: string) => {\n  activeColorLayer.value = color;\n};\n\nconst toggleLayerVisibility = (color: string) => {\n  const layer = colorLayers.value.get(color);\n  if (layer) {\n    layer.visible = !layer.visible;\n    canvasManager.value.renderColorLayers(colorLayers.value);\n  }\n};\n\nconst addCustomColorLayer = () => {\n  // Show color picker and add new layer\n  const colorPicker = document.createElement('input');\n  colorPicker.type = 'color';\n  colorPicker.onchange = (e) => {\n    const newColor = (e.target as HTMLInputElement).value;\n    if (!colorLayers.value.has(newColor)) {\n      colorLayers.value.set(newColor, {\n        color: newColor,\n        selectedGrids: new Set<string>(),\n        visible: true\n      });\n      setActiveColorLayer(newColor);\n    }\n  };\n  colorPicker.click();\n};\n```\n\n6. Extend export/import functionality to support color layers:\n```typescript\nconst exportColorLayers = (): ColorLayerExport => {\n  const layerData: Record<string, string[]> = {};\n  \n  colorLayers.value.forEach((layer, color) => {\n    layerData[color] = Array.from(layer.selectedGrids);\n  });\n  \n  return {\n    version: '1.0',\n    timestamp: new Date().toISOString(),\n    imageSize: { \n      width: imageElement.value?.width || 0, \n      height: imageElement.value?.height || 0 \n    },\n    gridSize: props.gridSize,\n    layers: layerData\n  };\n};\n\nconst importColorLayers = (data: ColorLayerExport) => {\n  // Reset current layers\n  colorLayers.value.clear();\n  \n  // Import layers from data\n  Object.entries(data.layers).forEach(([color, gridKeys]) => {\n    colorLayers.value.set(color, {\n      color,\n      selectedGrids: new Set(gridKeys),\n      visible: true\n    });\n  });\n  \n  // Set first color as active if available\n  if (colorLayers.value.size > 0) {\n    activeColorLayer.value = Array.from(colorLayers.value.keys())[0];\n  }\n  \n  // Re-render\n  canvasManager.value.renderColorLayers(colorLayers.value);\n};\n```\n\n7. Update the component's emitted events to include color layer information:\n```typescript\nconst emitSelectionChange = () => {\n  emit('update:selection', {\n    activeColor: activeColorLayer.value,\n    layers: Array.from(colorLayers.value.entries()).map(([color, layer]) => ({\n      color,\n      selectedCount: layer.selectedGrids.size,\n      visible: layer.visible\n    })),\n    totalSelected: Array.from(colorLayers.value.values())\n      .reduce((total, layer) => total + (layer.visible ? layer.selectedGrids.size : 0), 0)\n  });\n};\n```",
+        "testStrategy": "1. Test color layer initialization with default colors\n2. Verify selection operations correctly modify the active color layer only\n3. Test layer switching functionality:\n   - Confirm active layer changes when selected\n   - Verify selections are applied to the correct layer\n4. Test layer visibility toggling:\n   - Verify layers can be hidden/shown\n   - Confirm hidden layers' selections are not rendered\n   - Ensure hidden layers' data is preserved\n5. Test custom color layer addition:\n   - Verify new colors can be added\n   - Confirm new layers are initialized correctly\n6. Test rendering of multiple color layers:\n   - Verify all visible layers render correctly\n   - Test with overlapping selections in different colors\n   - Confirm rendering order matches layer order\n7. Test export/import functionality:\n   - Verify all color layers are included in exports\n   - Test importing color layer data\n   - Confirm layer state is correctly restored\n8. Test UI controls:\n   - Verify color buttons correctly indicate active layer\n   - Test visibility toggle controls\n   - Confirm color picker for new layers works\n9. Test integration with existing selection modes:\n   - Verify point selection works with color layers\n   - Test rectangle selection with color layers\n   - Confirm eraser mode works correctly with active color layer\n10. Performance testing:\n    - Test with multiple color layers containing many selections\n    - Verify switching between layers is responsive",
+        "status": "done",
+        "dependencies": [
+          6,
+          7,
+          11
+        ],
+        "priority": "high",
+        "subtasks": [
+          {
+            "id": 1,
+            "title": "Implement ColorLayer Interface and State Management",
+            "description": "Create the ColorLayer interface and implement the state management for multiple color layers",
+            "dependencies": [],
+            "details": "Define the ColorLayer interface with color, selectedGrids, and visibility properties. Implement the ref for colorLayers Map and activeColorLayer. Create the initColorLayers function to initialize default colors. This forms the foundation of the layer system.\n<info added on 2025-07-14T02:18:22.388Z>\nColorLayer interface and state management implementation completed:\n\n1. Added ColorLayer-related interfaces to types/index.ts:\n   - ColorLayer interface with properties: color, selectedGrids, visible, name, opacity\n   - ColorLayerExport interface\n   - LayerSelectionData interface\n   - ExtendedSelectionData interface\n   - ColorLayerState interface\n   - ColorLayerEvents interface\n\n2. Implemented color layer state in ObjectDetectionMarker.vue:\n   - Added colorLayers Map<string, ColorLayer>\n   - Added activeColorLayer string state\n   - Defined defaultColors array with 7 default colors\n   - Implemented initColorLayers() function to initialize layers with default colors\n   - Added getColorName() helper function for Korean color names\n\n3. Modified existing selection logic to work with the color layer system:\n   - Updated toggleGridSelection() to operate on the currently active layer\n   - Added initColorLayers() call in onMounted\n   - Modified resolution change handler to reset all layers\n</info added on 2025-07-14T02:18:22.388Z>",
+            "status": "done",
+            "testStrategy": "Verify that the state initializes correctly with default colors and that the activeColorLayer defaults to black."
+          },
+          {
+            "id": 2,
+            "title": "Extend CanvasManager for Color-Based Rendering",
+            "description": "Modify the CanvasManager class to support rendering multiple color layers",
+            "dependencies": [
+              1
+            ],
+            "details": "Add a renderColorLayers method to the CanvasManager that clears previous selections and renders each visible layer with its corresponding color. The method should respect layer visibility settings and use the correct color for each layer.\n<info added on 2025-07-14T02:20:33.029Z>\nImplementation of color layer rendering in CanvasManager completed:\n\n1. Modified redrawCanvas function:\n   - Changed from drawSelections() to drawColorLayers() call\n\n2. Implemented drawColorLayers() function:\n   - Iterates through all visible color layers for rendering\n   - Uses each layer's color property for rendering with appropriate color\n   - Supports layer.opacity (sets and restores globalAlpha)\n   - Maintains backward compatibility with existing selectedGrids as fallback\n   - Includes detailed console logging for rendering process\n\n3. Integrated active layer color coordination:\n   - Hover effects now use current active layer color\n   - Rectangle selection preview uses active layer color\n   - Applied lower opacity (40) for hover effects\n\n4. Enhanced rendering quality:\n   - Individual opacity applied per layer\n   - Respects layer visibility (visible) state\n   - Added detailed logging for debugging purposes\n</info added on 2025-07-14T02:20:33.029Z>",
+            "status": "done",
+            "testStrategy": "Test rendering with multiple layers of different colors and verify that toggling visibility correctly affects the canvas display."
+          },
+          {
+            "id": 3,
+            "title": "Update Selection Methods for Active Color Layer",
+            "description": "Modify grid selection methods to work with the active color layer",
+            "dependencies": [
+              1,
+              2
+            ],
+            "details": "Update the toggleGridSelection function to add/remove selections from the active color layer instead of a global selection set. Ensure that selections are properly tracked per color layer and that the canvas is re-rendered after selection changes.",
+            "status": "done",
+            "testStrategy": "Test selecting grids with different active colors and verify that selections are stored in the correct layer."
+          },
+          {
+            "id": 4,
+            "title": "Create Layer Switching UI Components",
+            "description": "Implement the UI for switching between color layers and toggling visibility",
+            "dependencies": [
+              1
+            ],
+            "details": "Create a color-layer-controls component with buttons for each color layer. Style active layers appropriately. Add visibility toggle buttons for each layer. Implement the + button for adding custom colors. Ensure the UI updates when the active layer changes.\n<info added on 2025-07-14T02:23:51.629Z>\nColor Layer UI Component Implementation Completed:\n\n1. Added color layer control UI to template:\n   - Circular buttons for each color layer (with corresponding background color)\n   - Visibility toggle buttons (👁️ emoji, click to show/hide layer)\n   - Display of selected cell count per layer\n   - Border highlight effect for active layer\n   - Button to add new color layers (+)\n\n2. Implemented color layer management methods:\n   - setActiveColorLayer() - change active layer\n   - toggleLayerVisibility() - toggle layer visibility\n   - addCustomColorLayer() - add new layer using browser color picker\n   - getActiveLayerCount() - return selection count for active layer\n   - getTotalSelectedCount() - calculate total selections across visible layers\n\n3. Extended event system:\n   - Added layerChange, activeLayerChange, layerVisibilityChange\n   - Added layerAdded, layerRemoved events\n\n4. Improved visual feedback:\n   - Display active layer information\n   - Show total selected grid count (visible layers only)\n   - Integrated color picker (creating temporary input in document)\n\n5. CSS styling:\n   - Designed circular color buttons\n   - Added hover/active state animations\n   - Enhanced readability with text shadows\n   - Implemented responsive layout\n</info added on 2025-07-14T02:23:51.629Z>",
+            "status": "done",
+            "testStrategy": "Test UI interactions including layer selection, visibility toggling, and adding custom colors."
+          },
+          {
+            "id": 5,
+            "title": "Implement Layer Management Methods",
+            "description": "Create methods for managing color layers including activation, visibility, and adding new layers",
+            "dependencies": [
+              1,
+              4
+            ],
+            "details": "Implement setActiveColorLayer, toggleLayerVisibility, and addCustomColorLayer functions. The addCustomColorLayer should create a color picker input and handle adding the new color to the layers map. Ensure all methods trigger appropriate UI updates.",
+            "status": "done",
+            "testStrategy": "Test each layer management function individually and verify that the UI and canvas update correctly."
+          },
+          {
+            "id": 6,
+            "title": "Extend Export/Import and Event Functionality",
+            "description": "Update export/import functionality and component events to support color layers",
+            "dependencies": [
+              1,
+              2,
+              3,
+              5
+            ],
+            "details": "Create exportColorLayers and importColorLayers functions that handle saving and loading the multi-layer state. Update the emitSelectionChange method to include color layer information in emitted events. Ensure backward compatibility with existing code where possible.",
+            "status": "done",
+            "testStrategy": "Test exporting and importing projects with multiple color layers. Verify that all layer data is preserved correctly and that events contain the expected layer information."
+          }
+        ]
+      },
+      {
+        "id": 20,
+        "title": "Implement Brush Size Selection Feature",
+        "description": "Create a brush size feature that allows users to select multiple grid cells at once based on a configurable brush size, with options for circular or square brush shapes.",
+        "details": "1. Extend the CanvasManager class with brush functionality:\n```typescript\ninterface BrushOptions {\n  size: number; // Radius in grid cells\n  shape: 'circle' | 'square'; // Brush shape\n}\n\n// Add to CanvasManager\nprivate brushOptions: BrushOptions = {\n  size: 1,\n  shape: 'circle'\n};\n\nsetBrushOptions(options: Partial<BrushOptions>): void {\n  this.brushOptions = { ...this.brushOptions, ...options };\n}\n\n// Modified selection method to support brush\nselectGridWithBrush(centerRow: number, centerCol: number): void {\n  const { size, shape } = this.brushOptions;\n  \n  if (size <= 1) {\n    // Single cell selection\n    this.selectGrid(centerRow, centerCol);\n    return;\n  }\n  \n  // Calculate cells within brush area\n  if (shape === 'square') {\n    // Select all cells in a square pattern\n    for (let r = centerRow - size + 1; r < centerRow + size; r++) {\n      for (let c = centerCol - size + 1; c < centerCol + size; c++) {\n        if (r >= 0 && c >= 0 && r < this.totalRows && c < this.totalCols) {\n          this.selectGrid(r, c);\n        }\n      }\n    }\n  } else {\n    // Select all cells in a circular pattern\n    for (let r = centerRow - size + 1; r < centerRow + size; r++) {\n      for (let c = centerCol - size + 1; c < centerCol + size; c++) {\n        if (r >= 0 && c >= 0 && r < this.totalRows && c < this.totalCols) {\n          // Calculate distance from center\n          const distance = Math.sqrt(Math.pow(r - centerRow, 2) + Math.pow(c - centerCol, 2));\n          if (distance < size) {\n            this.selectGrid(r, c);\n          }\n        }\n      }\n    }\n  }\n}\n\n// Same for deselect and toggle operations\ndeselectGridWithBrush(centerRow: number, centerCol: number): void {\n  // Similar implementation as selectGridWithBrush but using deselectGrid\n}\n\ntoggleGridWithBrush(centerRow: number, centerCol: number): void {\n  // Similar implementation as selectGridWithBrush but using toggleGridSelection\n}\n```\n\n2. Update the event handlers in the component to use brush selection:\n```typescript\nconst handleMouseMove = (e: MouseEvent) => {\n  if (!isSelecting.value) return;\n  \n  const { row, col } = canvasManager.value.getGridCellFromEvent(e);\n  \n  if (selectionMode.value === 'point') {\n    if (currentTool.value === 'select') {\n      canvasManager.value.selectGridWithBrush(row, col);\n    } else if (currentTool.value === 'erase') {\n      canvasManager.value.deselectGridWithBrush(row, col);\n    } else if (currentTool.value === 'toggle') {\n      canvasManager.value.toggleGridWithBrush(row, col);\n    }\n  }\n  \n  // Render updates\n  canvasManager.value.render();\n};\n```\n\n3. Implement brush preview rendering to show brush size and shape:\n```typescript\ndrawBrushPreview(x: number, y: number): void {\n  const { size, shape } = this.brushOptions;\n  const gridSize = this.gridSize / this.scale;\n  \n  this.ctx.save();\n  this.ctx.strokeStyle = 'rgba(255, 255, 255, 0.8)';\n  this.ctx.lineWidth = 2;\n  \n  if (shape === 'circle') {\n    this.ctx.beginPath();\n    this.ctx.arc(x, y, size * gridSize, 0, Math.PI * 2);\n    this.ctx.stroke();\n  } else {\n    const halfSize = size * gridSize;\n    this.ctx.strokeRect(x - halfSize, y - halfSize, halfSize * 2, halfSize * 2);\n  }\n  \n  this.ctx.restore();\n}\n```\n\n4. Create UI controls for brush size and shape:\n```vue\n<template>\n  <div class=\"brush-controls\">\n    <div class=\"brush-size\">\n      <label for=\"brush-size\">Brush Size:</label>\n      <input \n        type=\"range\" \n        id=\"brush-size\" \n        min=\"1\" \n        max=\"10\" \n        v-model.number=\"brushSize\"\n        @input=\"updateBrushSize\"\n      />\n      <span>{{ brushSize }}</span>\n    </div>\n    \n    <div class=\"brush-shape\">\n      <label>Brush Shape:</label>\n      <button \n        :class=\"{ active: brushShape === 'circle' }\" \n        @click=\"setBrushShape('circle')\"\n      >\n        Circle\n      </button>\n      <button \n        :class=\"{ active: brushShape === 'square' }\" \n        @click=\"setBrushShape('square')\"\n      >\n        Square\n      </button>\n    </div>\n  </div>\n</template>\n\n<script setup>\nconst brushSize = ref(1);\nconst brushShape = ref('circle');\n\nconst updateBrushSize = () => {\n  canvasManager.value.setBrushOptions({ size: brushSize.value });\n};\n\nconst setBrushShape = (shape) => {\n  brushShape.value = shape;\n  canvasManager.value.setBrushOptions({ shape });\n};\n</script>\n```\n\n5. Add brush size and shape options to component props:\n```typescript\ninterface Props {\n  // Existing props...\n  defaultBrushSize?: number; // Default: 1\n  defaultBrushShape?: 'circle' | 'square'; // Default: 'circle'\n}\n```\n\n6. Initialize brush options from props:\n```typescript\n// In setup function\nconst brushSize = ref(props.defaultBrushSize || 1);\nconst brushShape = ref(props.defaultBrushShape || 'circle');\n\n// Initialize canvas manager with brush options\nonMounted(() => {\n  // Existing initialization code...\n  canvasManager.value.setBrushOptions({\n    size: brushSize.value,\n    shape: brushShape.value\n  });\n});\n```",
+        "testStrategy": "1. Test brush size selection functionality:\n   - Verify that different brush sizes correctly select the appropriate number of grid cells\n   - Test that the circular brush shape properly selects cells in a circular pattern\n   - Test that the square brush shape properly selects cells in a square pattern\n\n2. Test brush UI controls:\n   - Verify the brush size slider correctly updates the brush size\n   - Test that the brush shape buttons correctly switch between circle and square modes\n   - Verify that brush settings persist during the session\n\n3. Test brush preview rendering:\n   - Verify that the brush preview correctly shows the current size and shape\n   - Test that the preview updates when brush settings change\n   - Verify that the preview follows the mouse cursor\n\n4. Test brush selection with different selection modes:\n   - Test brush selection with the select tool\n   - Test brush selection with the erase tool\n   - Test brush selection with the toggle tool\n\n5. Test edge cases:\n   - Verify brush behavior at image edges (should not select out-of-bounds cells)\n   - Test with minimum (1) and maximum brush sizes\n   - Test performance with large brush sizes on dense grids\n\n6. Test integration with existing selection functionality:\n   - Verify that brush selection works with the color layer system\n   - Test that selections can be exported/imported correctly when made with brush tool",
+        "status": "done",
+        "dependencies": [
+          6,
+          5
+        ],
+        "priority": "medium",
+        "subtasks": [
+          {
+            "id": 1,
+            "title": "Implement BrushOptions Interface and Core Methods",
+            "description": "Create the BrushOptions interface and extend the CanvasManager class with brush functionality methods",
+            "dependencies": [],
+            "details": "Define the BrushOptions interface with size and shape properties. Add the brushOptions property to CanvasManager with default values. Implement the setBrushOptions method to update brush settings. This forms the foundation for all brush-related functionality.\n<info added on 2025-07-14T02:53:39.183Z>\nImplementation of brush option interface and core methods completed:\n\n1. Added brush-related types in types/index.ts:\n   - BrushShape type ('circle' | 'square')\n   - BrushOptions interface with size and shape properties\n   - Extended Props interface with defaultBrushSize and defaultBrushShape\n\n2. Implemented brush state and Props in ObjectDetectionMarker.vue:\n   - Added brushSize and brushShape ref state variables\n   - Used withDefaults to add default brush settings (size: 1, shape: 'circle') to Props\n\n3. Implemented initialization logic:\n   - In onMounted hook, initialized brush state with default values defined in props\n\nThe foundation for brush-related functionality is now in place with proper typing and default values.\n</info added on 2025-07-14T02:53:39.183Z>",
+            "status": "done",
+            "testStrategy": "Create unit tests to verify that setBrushOptions correctly updates the brushOptions property with partial and complete option objects."
+          },
+          {
+            "id": 2,
+            "title": "Implement Brush Selection Methods",
+            "description": "Create methods for selecting, deselecting, and toggling grid cells using the brush tool",
+            "dependencies": [
+              1
+            ],
+            "details": "Implement selectGridWithBrush, deselectGridWithBrush, and toggleGridWithBrush methods in the CanvasManager class. Each method should handle both square and circular brush shapes, calculating which cells fall within the brush area based on the center position and brush size.\n<info added on 2025-07-14T02:56:13.123Z>\nI've implemented the brush selection methods in the CanvasManager class with the following improvements:\n\n1. Code structure enhancement:\n   - Refactored `toggleGridSelection` to call either `applyBrush` or `toggleSingleCell` based on brush usage\n   - Implemented `toggleSingleCell` to handle single cell selection/deselection/toggling\n   - Created `applyBrush` specifically for brush-related logic\n\n2. Brush functionality implementation:\n   - `applyBrush` calculates affected cells based on `brushShape` (circular/square) and `brushSize`\n   - Circular brush: Selects cells within calculated distance from center point\n   - Square brush: Selects all cells within a square area of the specified brush size\n   - Applies selection/deselection to calculated cells by calling `toggleSingleCell`\n\n3. Event handler integration:\n   - Connected `toggleGridSelection` to `handleMouseDown` and `handleMouseMove` events\n   - Optimized canvas updates (`redrawCanvas`) and event emissions (`emitSelectionChange`) to trigger only once at the mouse event handler level\n\nThe implementation successfully handles both square and circular brush shapes as required, calculating which cells fall within the brush area based on center position and brush size.\n</info added on 2025-07-14T02:56:13.123Z>",
+            "status": "done",
+            "testStrategy": "Test both square and circular brush selections with various sizes to ensure correct cells are selected. Verify edge cases like brush extending beyond canvas boundaries."
+          },
+          {
+            "id": 3,
+            "title": "Update Event Handlers for Brush Selection",
+            "description": "Modify existing mouse event handlers to use the new brush selection methods",
+            "dependencies": [
+              2
+            ],
+            "details": "Update handleMouseMove and related event handlers to use the brush selection methods instead of single-cell selection methods. Ensure that the appropriate brush method is called based on the current tool (select, erase, or toggle).",
+            "status": "done",
+            "testStrategy": "Create integration tests that simulate mouse movements and verify the correct brush selection method is called with the expected parameters."
+          },
+          {
+            "id": 4,
+            "title": "Implement Brush Preview Rendering",
+            "description": "Create visual feedback showing the brush size and shape during mouse movement",
+            "dependencies": [
+              1
+            ],
+            "details": "Implement the drawBrushPreview method in CanvasManager to render a visual indicator of the brush size and shape at the current mouse position. The preview should update in real-time as the mouse moves across the canvas, showing either a circle or square depending on the selected brush shape.\n<info added on 2025-07-14T02:57:25.690Z>\nBrush preview rendering implementation completed:\n\n✓ Completed work:\n1. Updated `redrawCanvas` function:\n   - Added logic to call `drawBrushPreview` when in `point` or `eraser` mode and a `hoveredCell` exists\n\n2. Implemented `drawBrushPreview` function:\n   - Calculates center coordinates of current `hoveredCell`\n   - Sets preview style using active layer's color (dashed line, 2px thickness)\n   - Draws either circular or rectangular preview based on `brushShape` value\n     - **Circle**: Uses `arc` to draw a circle with radius proportional to brush size\n     - **Rectangle**: Uses `strokeRect` to draw a rectangle with size proportional to brush size\n   - Resets dashed line style with `setLineDash([])` after drawing\n\n3. Enhanced `handleMouseMove` function:\n   - Optimized to call `redrawCanvas` only when `hoveredCell` actually changes\n   - Ensures smooth preview following the mouse movement\n\nNext step: Implement UI controls for brush configuration (Task 20.5)\n</info added on 2025-07-14T02:57:25.690Z>",
+            "status": "done",
+            "testStrategy": "Verify that the brush preview renders correctly for different sizes and shapes, and that it follows the mouse cursor accurately."
+          },
+          {
+            "id": 5,
+            "title": "Create UI Controls for Brush Configuration",
+            "description": "Build user interface elements for adjusting brush size and shape",
+            "dependencies": [
+              1,
+              4
+            ],
+            "details": "Create a brush controls component with a slider for brush size and buttons for selecting brush shape. Implement the necessary data bindings and event handlers to update the CanvasManager's brush options when the user changes settings. Add component props for default brush size and shape, and initialize the brush options from these props.\n<info added on 2025-07-14T02:58:08.357Z>\nBrush Controls UI Implementation Completed:\n\n✅ Completed Tasks:\n1. Added brush control UI to template:\n   - Used `v-if` to display brush controls only in `point` or `eraser` modes\n   - **Brush size adjustment**: Added `range` input slider with `v-model` binding to `brushSize`. Current size displayed as a label.\n   - **Brush shape selection**: Added 'Circle' and 'Square' buttons that change the `brushShape` state when clicked. Current selection visually indicated through an `active` class.\n\n2. CSS Styling:\n   - Added styles for the `brush-controls` container\n   - Applied detailed styling and hover/active effects for the slider (`brush-slider`) and buttons (`shape-button`)\n\n3. State Management:\n   - Directly bound UI controls to `brushSize` and `brushShape` ref state variables, ensuring state changes immediately when users interact with the UI.\n\n🔄 Next Step: Complete testing and validation of the entire brush functionality\n</info added on 2025-07-14T02:58:08.357Z>",
+            "status": "done",
+            "testStrategy": "Test that UI controls correctly update the brush settings in the CanvasManager. Verify that the visual preview updates immediately when settings are changed."
+          }
+        ]
+      },
+      {
+        "id": 21,
+        "title": "Implement Resolution-Independent Selection and Preview Feature",
+        "description": "Develop a resolution-independent selection system using percentage-based coordinates and create a read-only preview component that displays only the selected areas.",
+        "details": "1. Implement percentage-based data format for selections:\n```typescript\ninterface PercentageRect {\n  x: number;      // x-coordinate as percentage (0-100)\n  y: number;      // y-coordinate as percentage (0-100)\n  width: number;  // width as percentage (0-100)\n  height: number; // height as percentage (0-100)\n}\n\n// Add to CanvasManager\nprivate pixelToPercentage(pixelValue: number, totalSize: number): number {\n  return (pixelValue / totalSize) * 100;\n}\n\nprivate percentageToPixel(percentValue: number, totalSize: number): number {\n  return (percentValue / 100) * totalSize;\n}\n\n// Convert grid selections to percentage-based format\nconvertSelectionsToPercentage(): PercentageRect[] {\n  const selections: PercentageRect[] = [];\n  const { width, height } = this.imageSize;\n  \n  // For each selected grid, convert to percentage-based rectangle\n  this.selectedGrids.forEach(gridKey => {\n    const [row, col] = gridKey.split('-').map(Number);\n    const cellWidth = width / this.gridSize.cols;\n    const cellHeight = height / this.gridSize.rows;\n    \n    const x = this.pixelToPercentage(col * cellWidth, width);\n    const y = this.pixelToPercentage(row * cellHeight, height);\n    const w = this.pixelToPercentage(cellWidth, width);\n    const h = this.pixelToPercentage(cellHeight, height);\n    \n    selections.push({ x, y, width: w, height: h });\n  });\n  \n  return selections;\n}\n```\n\n2. Create a read-only preview component:\n```vue\n<template>\n  <div class=\"selection-preview\" ref=\"previewContainer\">\n    <canvas ref=\"previewCanvas\"></canvas>\n  </div>\n</template>\n\n<script setup lang=\"ts\">\nimport { ref, onMounted, watch, PropType } from 'vue';\nimport { PercentageRect } from '../types';\n\nconst props = defineProps({\n  imageUrl: {\n    type: String,\n    required: true\n  },\n  selections: {\n    type: Array as PropType<PercentageRect[]>,\n    required: true\n  },\n  highlightColor: {\n    type: String,\n    default: 'rgba(0, 123, 255, 0.5)'\n  }\n});\n\nconst previewCanvas = ref<HTMLCanvasElement | null>(null);\nconst previewContainer = ref<HTMLDivElement | null>(null);\nconst image = new Image();\n\nonMounted(() => {\n  loadImage();\n});\n\nwatch(() => props.imageUrl, loadImage);\nwatch(() => props.selections, renderPreview, { deep: true });\n\nfunction loadImage() {\n  image.onload = () => {\n    if (previewCanvas.value && previewContainer.value) {\n      previewCanvas.value.width = previewContainer.value.clientWidth;\n      previewCanvas.value.height = previewContainer.value.clientHeight;\n      renderPreview();\n    }\n  };\n  image.src = props.imageUrl;\n}\n\nfunction renderPreview() {\n  if (!previewCanvas.value || !image.complete) return;\n  \n  const ctx = previewCanvas.value.getContext('2d');\n  if (!ctx) return;\n  \n  const canvas = previewCanvas.value;\n  \n  // Clear canvas\n  ctx.clearRect(0, 0, canvas.width, canvas.height);\n  \n  // Draw image\n  ctx.drawImage(image, 0, 0, canvas.width, canvas.height);\n  \n  // Apply mask to hide non-selected areas\n  ctx.fillStyle = 'rgba(0, 0, 0, 0.7)';\n  ctx.fillRect(0, 0, canvas.width, canvas.height);\n  \n  // Draw only selected areas\n  ctx.globalCompositeOperation = 'destination-out';\n  props.selections.forEach(selection => {\n    const x = (selection.x / 100) * canvas.width;\n    const y = (selection.y / 100) * canvas.height;\n    const width = (selection.width / 100) * canvas.width;\n    const height = (selection.height / 100) * canvas.height;\n    \n    ctx.fillRect(x, y, width, height);\n  });\n  \n  // Reset composite operation\n  ctx.globalCompositeOperation = 'source-over';\n  \n  // Highlight selected areas\n  ctx.fillStyle = props.highlightColor;\n  props.selections.forEach(selection => {\n    const x = (selection.x / 100) * canvas.width;\n    const y = (selection.y / 100) * canvas.height;\n    const width = (selection.width / 100) * canvas.width;\n    const height = (selection.height / 100) * canvas.height;\n    \n    ctx.fillRect(x, y, width, height);\n  });\n}\n</script>\n\n<style scoped>\n.selection-preview {\n  width: 100%;\n  height: 100%;\n  position: relative;\n}\ncanvas {\n  width: 100%;\n  height: 100%;\n}\n</style>\n```\n\n3. Develop helper functions for coordinate conversion:\n```typescript\n// Add to utils/coordinates.ts\nexport function pixelRectToPercentage(\n  rect: { x: number; y: number; width: number; height: number },\n  imageWidth: number,\n  imageHeight: number\n): PercentageRect {\n  return {\n    x: (rect.x / imageWidth) * 100,\n    y: (rect.y / imageHeight) * 100,\n    width: (rect.width / imageWidth) * 100,\n    height: (rect.height / imageHeight) * 100\n  };\n}\n\nexport function percentageRectToPixel(\n  rect: PercentageRect,\n  imageWidth: number,\n  imageHeight: number\n): { x: number; y: number; width: number; height: number } {\n  return {\n    x: (rect.x / 100) * imageWidth,\n    y: (rect.y / 100) * imageHeight,\n    width: (rect.width / 100) * imageWidth,\n    height: (rect.height / 100) * imageHeight\n  };\n}\n\n// Add method to export selections in percentage format\nexport function getPercentageSelections(): PercentageRect[] {\n  // For the current active color layer\n  return this.convertSelectionsToPercentage();\n}\n```\n\n4. Integrate with existing color layer system:\n```typescript\n// Extend ColorLayer interface\ninterface ColorLayer {\n  color: string;\n  selectedGrids: Set<string>;\n  visible: boolean;\n  percentageSelections?: PercentageRect[]; // Add this property\n}\n\n// Update layer selection methods to maintain percentage data\nupdateLayerPercentageSelections(layerId: string): void {\n  const layer = this.colorLayers.get(layerId);\n  if (layer) {\n    // Convert the layer's grid selections to percentage format\n    layer.percentageSelections = this.convertLayerSelectionsToPercentage(layer);\n  }\n}\n\n// Helper to convert a specific layer's selections\nconvertLayerSelectionsToPercentage(layer: ColorLayer): PercentageRect[] {\n  const selections: PercentageRect[] = [];\n  const { width, height } = this.imageSize;\n  \n  layer.selectedGrids.forEach(gridKey => {\n    // Same conversion logic as before\n    // ...\n  });\n  \n  return selections;\n}\n```\n\n5. Add resize handling to maintain selections:\n```typescript\n// Add to CanvasManager\nhandleImageResize(newWidth: number, newHeight: number): void {\n  const oldWidth = this.imageSize.width;\n  const oldHeight = this.imageSize.height;\n  \n  // Update image size\n  this.imageSize = { width: newWidth, height: newHeight };\n  \n  // Recalculate grid dimensions\n  this.updateGridDimensions();\n  \n  // For each color layer, maintain selections using percentage data\n  this.colorLayers.forEach((layer, layerId) => {\n    if (layer.percentageSelections) {\n      // Clear current grid selections\n      layer.selectedGrids.clear();\n      \n      // Convert percentage selections back to grid selections with new dimensions\n      layer.percentageSelections.forEach(pRect => {\n        const pixelRect = percentageRectToPixel(pRect, newWidth, newHeight);\n        this.addGridsFromPixelRect(pixelRect, layerId);\n      });\n    }\n  });\n  \n  // Trigger render update\n  this.render();\n}\n\n// Helper to add grid selections from a pixel rectangle\nprivate addGridsFromPixelRect(\n  rect: { x: number; y: number; width: number; height: number },\n  layerId: string\n): void {\n  const layer = this.colorLayers.get(layerId);\n  if (!layer) return;\n  \n  const { cols, rows } = this.gridSize;\n  const cellWidth = this.imageSize.width / cols;\n  const cellHeight = this.imageSize.height / rows;\n  \n  // Calculate grid cells that fall within the rectangle\n  const startCol = Math.floor(rect.x / cellWidth);\n  const startRow = Math.floor(rect.y / cellHeight);\n  const endCol = Math.min(cols - 1, Math.floor((rect.x + rect.width) / cellWidth));\n  const endRow = Math.min(rows - 1, Math.floor((rect.y + rect.height) / cellHeight));\n  \n  // Add all grid cells in the rectangle to the layer's selection\n  for (let row = startRow; row <= endRow; row++) {\n    for (let col = startCol; col <= endCol; col++) {\n      layer.selectedGrids.add(`${row}-${col}`);\n    }\n  }\n}",
+        "testStrategy": "1. Test percentage-based data format:\n   - Create a test image with known dimensions\n   - Make various grid selections\n   - Convert to percentage format using the new functions\n   - Verify that percentage values are correctly calculated (0-100 range)\n   - Change image resolution and verify selections maintain their relative positions\n\n2. Test read-only preview component:\n   - Create a test harness that loads different images\n   - Pass various selection patterns to the preview component\n   - Verify that only selected areas are visible in the preview\n   - Test with different image sizes and aspect ratios\n   - Verify the preview updates when selections change\n   - Test with empty selections and verify the entire image is masked\n\n3. Test coordinate conversion helpers:\n   - Create unit tests for pixelRectToPercentage and percentageRectToPixel functions\n   - Test with various input values including edge cases (0, 100%)\n   - Verify round-trip conversion (pixel → percentage → pixel) maintains accuracy\n   - Test with different image dimensions\n\n4. Test integration with color layer system:\n   - Verify percentage selections are correctly maintained for each color layer\n   - Test switching between layers and verify selections remain intact\n   - Test with multiple layers having different selection patterns\n\n5. Test resize handling:\n   - Load an image and make selections\n   - Resize the image to various dimensions\n   - Verify selections maintain their relative positions\n   - Test extreme resizing (very small to very large and vice versa)\n   - Verify grid calculations are correct after resize\n\n6. Test browser compatibility:\n   - Verify the preview component works in all major browsers\n   - Test on different devices (desktop, tablet, mobile)\n   - Verify canvas rendering is consistent across platforms",
+        "status": "done",
+        "dependencies": [
+          6,
+          19,
+          20
+        ],
+        "priority": "high",
+        "subtasks": [
+          {
+            "id": 1,
+            "title": "해상도 독립적인 % 기반 데이터 형식 구현",
+            "description": "% 기반 데이터 형식 구현을 위한 하위 작업을 추가합니다. 이 작업은 해상도에 독립적인 데이터 가져오기/내보내기 기능을 만드는 것을 목표로 합니다.",
+            "details": "",
+            "status": "done",
+            "dependencies": [],
+            "parentTaskId": 21
+          },
+          {
+            "id": 2,
+            "title": "읽기 전용 미리보기 컴포넌트 생성",
+            "description": "읽기 전용 미리보기 컴포넌트 생성을 위한 하위 작업을 추가합니다. 이 컴포넌트는 입력 데이터를 기반으로 선택 영역을 시각화하는 역할을 합니다.",
+            "details": "",
+            "status": "done",
+            "dependencies": [],
+            "parentTaskId": 21
+          },
+          {
+            "id": 3,
+            "title": "% 기반 Rect 좌표 변환 헬퍼 함수 개발",
+            "description": "% 기반 Rect 좌표 변환 헬퍼 함수 개발을 위한 하위 작업을 추가합니다. 이 함수는 선택된 영역 데이터를 퍼센트 기반의 사각형 좌표로 변환하는 기능을 제공합니다.",
+            "details": "",
+            "status": "done",
+            "dependencies": [],
+            "parentTaskId": 21
+          },
+          {
+            "id": 4,
+            "title": "선택 데이터 저장 방식 최적화 (사각형 병합)",
+            "description": "사용자의 요청에 따라, 선택된 인접 격자들을 더 큰 사각형으로 병합하여 데이터 저장 용량을 최적화하는 새로운 하위 작업을 추가합니다.",
+            "details": "",
+            "status": "done",
+            "dependencies": [],
+            "parentTaskId": 21
+          },
+          {
+            "id": 5,
+            "title": "미리보기 렌더링 최적화 (외곽선 그리기)",
+            "description": "사용자의 요청에 따라, 병합된 사각형 데이터의 외곽선만 그리도록 미리보기 렌더링 로직을 최적화하는 새로운 하위 작업을 추가합니다.",
+            "details": "",
+            "status": "done",
+            "dependencies": [
+              "21.4"
+            ],
+            "parentTaskId": 21
+          },
+          {
+            "id": 6,
+            "title": "격자 기반 데이터 형식 리팩토링 및 메타데이터 추가",
+            "description": "사용자의 제안에 따라, 내보내는 데이터 형식을 최적화하는 새로운 하위 작업을 추가합니다. 이 작업은 데이터를 퍼센트 대신 격자 단위로 저장하고, 총 열/행 수를 메타데이터로 포함시켜 데이터 용량을 줄이고 정밀도를 높이는 것을 목표로 합니다.",
+            "details": "",
+            "status": "done",
+            "dependencies": [],
+            "parentTaskId": 21
+          }
+        ]
+      }
+    ],
+    "metadata": {
+      "created": "2025-07-11T02:47:57.595Z",
+      "updated": "2025-07-14T04:23:46.893Z",
+      "description": "Tasks for master context"
+    }
+  }
+}

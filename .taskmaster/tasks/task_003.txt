@@ -1,0 +1,99 @@
+# Task ID: 3
+# Title: Implement Image Loading and Processing
+# Status: done
+# Dependencies: 2
+# Priority: high
+# Description: Create functionality to load and process images from various sources (URL, Base64, Blob, File) and prepare them for rendering on canvas.
+# Details:
+1. Create an image loader utility (src/utils/imageLoader.ts):
+```typescript
+export async function loadImage(source: string | File | Blob): Promise<HTMLImageElement> {
+  return new Promise((resolve, reject) => {
+    const img = new Image();
+    img.crossOrigin = 'anonymous'; // Handle CORS for URLs
+    
+    img.onload = () => resolve(img);
+    img.onerror = reject;
+    
+    if (typeof source === 'string') {
+      // Handle URL or Base64
+      img.src = source;
+    } else {
+      // Handle File or Blob
+      const url = URL.createObjectURL(source);
+      img.src = url;
+      // Store URL to revoke later
+      img._objectUrl = url;
+    }
+  });
+}
+
+export function cleanupImage(img: HTMLImageElement): void {
+  if (img._objectUrl) {
+    URL.revokeObjectURL(img._objectUrl);
+  }
+}
+```
+2. Implement a watch effect in the component to load images when the image prop changes
+3. Add image processing functions to handle different aspect ratios
+4. Implement error handling for failed image loads
+5. Add loading state indicators
+6. Optimize image processing for large images using web workers if necessary
+
+# Test Strategy:
+1. Unit test image loading from different sources
+2. Test error handling for invalid images
+3. Verify CORS handling for remote URLs
+4. Test memory management (URL.revokeObjectURL)
+5. Test with various image sizes and formats (JPG, PNG, WebP)
+
+# Subtasks:
+## 1. Create Image Loader Utility [done]
+### Dependencies: None
+### Description: Implement a utility function to load images from various sources (URL, Base64, Blob, File) and handle cleanup.
+### Details:
+Create src/utils/imageLoader.ts with loadImage and cleanupImage functions. The loadImage function should handle different source types and return a Promise with the loaded HTMLImageElement. Ensure proper CORS handling for URLs and object URL management for Blobs/Files.
+<info added on 2025-07-14T01:35:43.159Z>
+The loadImage function should be designed to handle various image source types (URL strings, Blob, or File objects) and return a Promise that resolves to an HTMLImageElement. For URLs, ensure proper CORS handling is implemented. For Blob/File objects, create and manage object URLs appropriately.
+
+Additionally, implement a cleanupImage function to properly dispose of resources, particularly revoking object URLs when they're no longer needed to prevent memory leaks.
+
+When implementing these functions, consider the grid system interaction. The image loading process should be independent from the grid system to ensure proper separation of concerns, allowing components like ObjectDetectionMarker to handle grid-related functionality separately.
+</info added on 2025-07-14T01:35:43.159Z>
+<info added on 2025-07-14T01:59:19.327Z>
+When implementing the loadImage function, ensure it works seamlessly with the new resolution-based grid system. The function should load images while preserving their native aspect ratio and dimensions, which are critical for the GCD-based ratio calculations (e.g., 1920x1080 → 16:9).
+
+The image loader should expose the natural width and height of loaded images to support:
+- Aspect ratio calculation using GCD
+- Resolution multiplier application (1x, 2x, 3x, 4x, 5x)
+- Grid cell count determination based on resolution × base ratio
+
+Ensure the loadImage function returns image metadata alongside the HTMLImageElement to facilitate grid calculations without requiring additional DOM operations. This metadata should include naturalWidth, naturalHeight, and potentially the calculated aspect ratio to optimize performance when the image is used with the updateGridCalculations() function in ObjectDetectionMarker.vue.
+
+The cleanupImage function should properly handle resource disposal regardless of the resolution settings being used, ensuring no memory leaks occur when switching between different resolution multipliers or when loading new images.
+</info added on 2025-07-14T01:59:19.327Z>
+
+## 2. Implement Watch Effect for Image Changes [done]
+### Dependencies: 3.1
+### Description: Create a reactive mechanism to load images when the image prop changes in the component.
+### Details:
+Use Vue's watch or watchEffect to monitor changes to the image prop. When changed, call the loadImage utility and update the component state. Handle the loading state and potential errors during this process.
+
+## 3. Add Image Processing Functions [done]
+### Dependencies: 3.1
+### Description: Implement functions to handle different aspect ratios and prepare images for canvas rendering.
+### Details:
+Create functions to calculate dimensions based on aspect ratio, determine optimal scaling, and prepare the image for canvas rendering. Consider options for contain, cover, and stretch modes to handle different aspect ratios between the image and canvas.
+
+## 4. Implement Error Handling and Loading States [done]
+### Dependencies: 3.2
+### Description: Add comprehensive error handling for image loading failures and implement loading state indicators.
+### Details:
+Create error handling for network issues, invalid images, and CORS problems. Implement loading state indicators (spinner, placeholder, etc.) to provide visual feedback during image loading. Add retry mechanisms for failed loads where appropriate.
+
+## 5. Optimize Image Processing for Large Images [done]
+### Dependencies: 3.3
+### Description: Implement performance optimizations for processing large images, potentially using Web Workers.
+### Details:
+For large images, implement optimizations such as downsampling before rendering, progressive loading, or offloading processing to Web Workers. Add detection for image size to conditionally apply these optimizations. Consider adding a caching mechanism for processed images to improve performance for repeated operations.
+

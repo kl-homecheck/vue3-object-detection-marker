@@ -1,0 +1,35 @@
+# Task ID: 2
+# Title: Create Core Component Structure
+# Status: done
+# Dependencies: 1
+# Priority: high
+# Description: Develop the base Vue 3 component structure using Composition API that will serve as the foundation for the object detection marker.
+# Details:
+1. Create the main component file (ObjectDetectionMarker.vue)
+2. Implement using Vue 3 Composition API with <script setup> syntax
+3. Define component props interface:
+```typescript
+interface Props {
+  image: string | File | Blob; // Support multiple image input types
+  gridSize?: number; // Default to 244x244
+  selectionMode?: 'point' | 'rectangle'; // Default selection mode
+  highlightColor?: string; // Color for selected grids
+  gridColor?: string; // Color for grid lines
+}
+```
+4. Create reactive state variables:
+```typescript
+const selectedGrids = ref<Set<string>>(new Set());
+const currentMode = ref<'point' | 'rectangle' | 'eraser'>(props.selectionMode || 'point');
+const imageLoaded = ref<boolean>(false);
+const imageElement = ref<HTMLImageElement | null>(null);
+```
+5. Implement basic template structure with canvas element
+6. Export component as both Vue component and plugin
+7. Create necessary type definitions in src/types/
+
+# Test Strategy:
+1. Unit test the component initialization
+2. Verify props are correctly typed and validated
+3. Test that the component renders without errors
+4. Verify component exports correctly as both component and plugin

@@ -1,0 +1,53 @@
+# Task ID: 12
+# Title: Implement Selection Statistics Display
+# Status: done
+# Dependencies: 11
+# Priority: low
+# Description: Create a component to display statistics about the current selection, including number of selected cells, percentage of image covered, and other relevant metrics.
+# Details:
+1. Create a statistics component:
+```vue
+<template>
+  <div class="selection-statistics">
+    <div class="stat-item">
+      <span class="stat-label">Selected:</span>
+      <span class="stat-value">{{ selectedCount }}</span>
+    </div>
+    <div class="stat-item">
+      <span class="stat-label">Total Grids:</span>
+      <span class="stat-value">{{ totalGrids }}</span>
+    </div>
+    <div class="stat-item">
+      <span class="stat-label">Coverage:</span>
+      <span class="stat-value">{{ coveragePercentage }}%</span>
+    </div>
+  </div>
+</template>
+
+<script setup lang="ts">
+import { computed } from 'vue';
+
+const props = defineProps<{
+  selectedCount: number;
+  totalGrids: number;
+}>();
+
+const coveragePercentage = computed(() => {
+  if (props.totalGrids === 0) return '0.00';
+  return ((props.selectedCount / props.totalGrids) * 100).toFixed(2);
+});
+</script>
+```
+2. Integrate statistics component with main component
+3. Add reactive updates when selection changes
+4. Implement additional statistics (e.g., selected area dimensions)
+5. Add option to show/hide statistics
+6. Style statistics display for better visibility
+
+# Test Strategy:
+1. Test statistics calculations
+2. Verify reactive updates when selection changes
+3. Test with edge cases (no selection, all selected)
+4. Verify statistics display formatting
+5. Test show/hide functionality
+6. Verify statistics accuracy with different selection patterns

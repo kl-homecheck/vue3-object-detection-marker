@@ -1,0 +1,327 @@
+# Task ID: 20
+# Title: Implement Brush Size Selection Feature
+# Status: done
+# Dependencies: 6, 5
+# Priority: medium
+# Description: Create a brush size feature that allows users to select multiple grid cells at once based on a configurable brush size, with options for circular or square brush shapes.
+# Details:
+1. Extend the CanvasManager class with brush functionality:
+```typescript
+interface BrushOptions {
+  size: number; // Radius in grid cells
+  shape: 'circle' | 'square'; // Brush shape
+}
+
+// Add to CanvasManager
+private brushOptions: BrushOptions = {
+  size: 1,
+  shape: 'circle'
+};
+
+setBrushOptions(options: Partial<BrushOptions>): void {
+  this.brushOptions = { ...this.brushOptions, ...options };
+}
+
+// Modified selection method to support brush
+selectGridWithBrush(centerRow: number, centerCol: number): void {
+  const { size, shape } = this.brushOptions;
+  
+  if (size <= 1) {
+    // Single cell selection
+    this.selectGrid(centerRow, centerCol);
+    return;
+  }
+  
+  // Calculate cells within brush area
+  if (shape === 'square') {
+    // Select all cells in a square pattern
+    for (let r = centerRow - size + 1; r < centerRow + size; r++) {
+      for (let c = centerCol - size + 1; c < centerCol + size; c++) {
+        if (r >= 0 && c >= 0 && r < this.totalRows && c < this.totalCols) {
+          this.selectGrid(r, c);
+        }
+      }
+    }
+  } else {
+    // Select all cells in a circular pattern
+    for (let r = centerRow - size + 1; r < centerRow + size; r++) {
+      for (let c = centerCol - size + 1; c < centerCol + size; c++) {
+        if (r >= 0 && c >= 0 && r < this.totalRows && c < this.totalCols) {
+          // Calculate distance from center
+          const distance = Math.sqrt(Math.pow(r - centerRow, 2) + Math.pow(c - centerCol, 2));
+          if (distance < size) {
+            this.selectGrid(r, c);
+          }
+        }
+      }
+    }
+  }
+}
+
+// Same for deselect and toggle operations
+deselectGridWithBrush(centerRow: number, centerCol: number): void {
+  // Similar implementation as selectGridWithBrush but using deselectGrid
+}
+
+toggleGridWithBrush(centerRow: number, centerCol: number): void {
+  // Similar implementation as selectGridWithBrush but using toggleGridSelection
+}
+```
+
+2. Update the event handlers in the component to use brush selection:
+```typescript
+const handleMouseMove = (e: MouseEvent) => {
+  if (!isSelecting.value) return;
+  
+  const { row, col } = canvasManager.value.getGridCellFromEvent(e);
+  
+  if (selectionMode.value === 'point') {
+    if (currentTool.value === 'select') {
+      canvasManager.value.selectGridWithBrush(row, col);
+    } else if (currentTool.value === 'erase') {
+      canvasManager.value.deselectGridWithBrush(row, col);
+    } else if (currentTool.value === 'toggle') {
+      canvasManager.value.toggleGridWithBrush(row, col);
+    }
+  }
+  
+  // Render updates
+  canvasManager.value.render();
+};
+```
+
+3. Implement brush preview rendering to show brush size and shape:
+```typescript
+drawBrushPreview(x: number, y: number): void {
+  const { size, shape } = this.brushOptions;
+  const gridSize = this.gridSize / this.scale;
+  
+  this.ctx.save();
+  this.ctx.strokeStyle = 'rgba(255, 255, 255, 0.8)';
+  this.ctx.lineWidth = 2;
+  
+  if (shape === 'circle') {
+    this.ctx.beginPath();
+    this.ctx.arc(x, y, size * gridSize, 0, Math.PI * 2);
+    this.ctx.stroke();
+  } else {
+    const halfSize = size * gridSize;
+    this.ctx.strokeRect(x - halfSize, y - halfSize, halfSize * 2, halfSize * 2);
+  }
+  
+  this.ctx.restore();
+}
+```
+
+4. Create UI controls for brush size and shape:
+```vue
+<template>
+  <div class="brush-controls">
+    <div class="brush-size">
+      <label for="brush-size">Brush Size:</label>
+      <input 
+        type="range" 
+        id="brush-size" 
+        min="1" 
+        max="10" 
+        v-model.number="brushSize"
+        @input="updateBrushSize"
+      />
+      <span>{{ brushSize }}</span>
+    </div>
+    
+    <div class="brush-shape">
+      <label>Brush Shape:</label>
+      <button 
+        :class="{ active: brushShape === 'circle' }" 
+        @click="setBrushShape('circle')"
+      >
+        Circle
+      </button>
+      <button 
+        :class="{ active: brushShape === 'square' }" 
+        @click="setBrushShape('square')"
+      >
+        Square
+      </button>
+    </div>
+  </div>
+</template>
+
+<script setup>
+const brushSize = ref(1);
+const brushShape = ref('circle');
+
+const updateBrushSize = () => {
+  canvasManager.value.setBrushOptions({ size: brushSize.value });
+};
+
+const setBrushShape = (shape) => {
+  brushShape.value = shape;
+  canvasManager.value.setBrushOptions({ shape });
+};
+</script>
+```
+
+5. Add brush size and shape options to component props:
+```typescript
+interface Props {
+  // Existing props...
+  defaultBrushSize?: number; // Default: 1
+  defaultBrushShape?: 'circle' | 'square'; // Default: 'circle'
+}
+```
+
+6. Initialize brush options from props:
+```typescript
+// In setup function
+const brushSize = ref(props.defaultBrushSize || 1);
+const brushShape = ref(props.defaultBrushShape || 'circle');
+
+// Initialize canvas manager with brush options
+onMounted(() => {
+  // Existing initialization code...
+  canvasManager.value.setBrushOptions({
+    size: brushSize.value,
+    shape: brushShape.value
+  });
+});
+```
+
+# Test Strategy:
+1. Test brush size selection functionality:
+   - Verify that different brush sizes correctly select the appropriate number of grid cells
+   - Test that the circular brush shape properly selects cells in a circular pattern
+   - Test that the square brush shape properly selects cells in a square pattern
+
+2. Test brush UI controls:
+   - Verify the brush size slider correctly updates the brush size
+   - Test that the brush shape buttons correctly switch between circle and square modes
+   - Verify that brush settings persist during the session
+
+3. Test brush preview rendering:
+   - Verify that the brush preview correctly shows the current size and shape
+   - Test that the preview updates when brush settings change
+   - Verify that the preview follows the mouse cursor
+
+4. Test brush selection with different selection modes:
+   - Test brush selection with the select tool
+   - Test brush selection with the erase tool
+   - Test brush selection with the toggle tool
+
+5. Test edge cases:
+   - Verify brush behavior at image edges (should not select out-of-bounds cells)
+   - Test with minimum (1) and maximum brush sizes
+   - Test performance with large brush sizes on dense grids
+
+6. Test integration with existing selection functionality:
+   - Verify that brush selection works with the color layer system
+   - Test that selections can be exported/imported correctly when made with brush tool
+
+# Subtasks:
+## 1. Implement BrushOptions Interface and Core Methods [done]
+### Dependencies: None
+### Description: Create the BrushOptions interface and extend the CanvasManager class with brush functionality methods
+### Details:
+Define the BrushOptions interface with size and shape properties. Add the brushOptions property to CanvasManager with default values. Implement the setBrushOptions method to update brush settings. This forms the foundation for all brush-related functionality.
+<info added on 2025-07-14T02:53:39.183Z>
+Implementation of brush option interface and core methods completed:
+
+1. Added brush-related types in types/index.ts:
+   - BrushShape type ('circle' | 'square')
+   - BrushOptions interface with size and shape properties
+   - Extended Props interface with defaultBrushSize and defaultBrushShape
+
+2. Implemented brush state and Props in ObjectDetectionMarker.vue:
+   - Added brushSize and brushShape ref state variables
+   - Used withDefaults to add default brush settings (size: 1, shape: 'circle') to Props
+
+3. Implemented initialization logic:
+   - In onMounted hook, initialized brush state with default values defined in props
+
+The foundation for brush-related functionality is now in place with proper typing and default values.
+</info added on 2025-07-14T02:53:39.183Z>
+
+## 2. Implement Brush Selection Methods [done]
+### Dependencies: 20.1
+### Description: Create methods for selecting, deselecting, and toggling grid cells using the brush tool
+### Details:
+Implement selectGridWithBrush, deselectGridWithBrush, and toggleGridWithBrush methods in the CanvasManager class. Each method should handle both square and circular brush shapes, calculating which cells fall within the brush area based on the center position and brush size.
+<info added on 2025-07-14T02:56:13.123Z>
+I've implemented the brush selection methods in the CanvasManager class with the following improvements:
+
+1. Code structure enhancement:
+   - Refactored `toggleGridSelection` to call either `applyBrush` or `toggleSingleCell` based on brush usage
+   - Implemented `toggleSingleCell` to handle single cell selection/deselection/toggling
+   - Created `applyBrush` specifically for brush-related logic
+
+2. Brush functionality implementation:
+   - `applyBrush` calculates affected cells based on `brushShape` (circular/square) and `brushSize`
+   - Circular brush: Selects cells within calculated distance from center point
+   - Square brush: Selects all cells within a square area of the specified brush size
+   - Applies selection/deselection to calculated cells by calling `toggleSingleCell`
+
+3. Event handler integration:
+   - Connected `toggleGridSelection` to `handleMouseDown` and `handleMouseMove` events
+   - Optimized canvas updates (`redrawCanvas`) and event emissions (`emitSelectionChange`) to trigger only once at the mouse event handler level
+
+The implementation successfully handles both square and circular brush shapes as required, calculating which cells fall within the brush area based on center position and brush size.
+</info added on 2025-07-14T02:56:13.123Z>
+
+## 3. Update Event Handlers for Brush Selection [done]
+### Dependencies: 20.2
+### Description: Modify existing mouse event handlers to use the new brush selection methods
+### Details:
+Update handleMouseMove and related event handlers to use the brush selection methods instead of single-cell selection methods. Ensure that the appropriate brush method is called based on the current tool (select, erase, or toggle).
+
+## 4. Implement Brush Preview Rendering [done]
+### Dependencies: 20.1
+### Description: Create visual feedback showing the brush size and shape during mouse movement
+### Details:
+Implement the drawBrushPreview method in CanvasManager to render a visual indicator of the brush size and shape at the current mouse position. The preview should update in real-time as the mouse moves across the canvas, showing either a circle or square depending on the selected brush shape.
+<info added on 2025-07-14T02:57:25.690Z>
+Brush preview rendering implementation completed:
+
+✓ Completed work:
+1. Updated `redrawCanvas` function:
+   - Added logic to call `drawBrushPreview` when in `point` or `eraser` mode and a `hoveredCell` exists
+
+2. Implemented `drawBrushPreview` function:
+   - Calculates center coordinates of current `hoveredCell`
+   - Sets preview style using active layer's color (dashed line, 2px thickness)
+   - Draws either circular or rectangular preview based on `brushShape` value
+     - **Circle**: Uses `arc` to draw a circle with radius proportional to brush size
+     - **Rectangle**: Uses `strokeRect` to draw a rectangle with size proportional to brush size
+   - Resets dashed line style with `setLineDash([])` after drawing
+
+3. Enhanced `handleMouseMove` function:
+   - Optimized to call `redrawCanvas` only when `hoveredCell` actually changes
+   - Ensures smooth preview following the mouse movement
+
+Next step: Implement UI controls for brush configuration (Task 20.5)
+</info added on 2025-07-14T02:57:25.690Z>
+
+## 5. Create UI Controls for Brush Configuration [done]
+### Dependencies: 20.1, 20.4
+### Description: Build user interface elements for adjusting brush size and shape
+### Details:
+Create a brush controls component with a slider for brush size and buttons for selecting brush shape. Implement the necessary data bindings and event handlers to update the CanvasManager's brush options when the user changes settings. Add component props for default brush size and shape, and initialize the brush options from these props.
+<info added on 2025-07-14T02:58:08.357Z>
+Brush Controls UI Implementation Completed:
+
+✅ Completed Tasks:
+1. Added brush control UI to template:
+   - Used `v-if` to display brush controls only in `point` or `eraser` modes
+   - **Brush size adjustment**: Added `range` input slider with `v-model` binding to `brushSize`. Current size displayed as a label.
+   - **Brush shape selection**: Added 'Circle' and 'Square' buttons that change the `brushShape` state when clicked. Current selection visually indicated through an `active` class.
+
+2. CSS Styling:
+   - Added styles for the `brush-controls` container
+   - Applied detailed styling and hover/active effects for the slider (`brush-slider`) and buttons (`shape-button`)
+
+3. State Management:
+   - Directly bound UI controls to `brushSize` and `brushShape` ref state variables, ensuring state changes immediately when users interact with the UI.
+
+🔄 Next Step: Complete testing and validation of the entire brush functionality
+</info added on 2025-07-14T02:58:08.357Z>
+

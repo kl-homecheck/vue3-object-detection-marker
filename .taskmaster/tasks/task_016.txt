@@ -1,0 +1,65 @@
+# Task ID: 16
+# Title: Implement Custom Theming and Appearance Options
+# Status: deferred
+# Dependencies: 9
+# Priority: low
+# Description: Create a theming system that allows customization of colors, grid appearance, selection highlights, and other visual aspects of the component.
+# Details:
+1. Extend component props with theming options:
+```typescript
+interface Props {
+  // Existing props...
+  
+  // Theming options
+  gridColor?: string; // Default: 'rgba(255, 255, 255, 0.5)'
+  gridThickness?: number; // Default: 1
+  selectionColor?: string; // Default: 'rgba(0, 123, 255, 0.5)'
+  tempSelectionColor?: string; // Default: 'rgba(255, 123, 0, 0.5)'
+  eraserColor?: string; // Default: 'rgba(255, 0, 0, 0.5)'
+  showGrid?: boolean; // Default: true
+  theme?: 'light' | 'dark' | 'custom'; // Default: 'light'
+}
+```
+2. Implement theme application in the CanvasManager:
+```typescript
+updateTheme(options: ThemeOptions): void {
+  this.gridColor = options.gridColor || 'rgba(255, 255, 255, 0.5)';
+  this.gridThickness = options.gridThickness || 1;
+  this.selectionColor = options.selectionColor || 'rgba(0, 123, 255, 0.5)';
+  this.tempSelectionColor = options.tempSelectionColor || 'rgba(255, 123, 0, 0.5)';
+  this.showGrid = options.showGrid !== undefined ? options.showGrid : true;
+  
+  // Re-render with new theme
+  this.render();
+}
+```
+3. Create preset themes:
+```typescript
+const themes = {
+  light: {
+    gridColor: 'rgba(0, 0, 0, 0.3)',
+    selectionColor: 'rgba(0, 123, 255, 0.5)',
+    tempSelectionColor: 'rgba(255, 123, 0, 0.5)',
+    eraserColor: 'rgba(255, 0, 0, 0.3)'
+  },
+  dark: {
+    gridColor: 'rgba(255, 255, 255, 0.3)',
+    selectionColor: 'rgba(0, 183, 255, 0.5)',
+    tempSelectionColor: 'rgba(255, 183, 0, 0.5)',
+    eraserColor: 'rgba(255, 50, 50, 0.3)'
+  }
+};
+```
+4. Add theme switching functionality
+5. Implement CSS variables for component styling
+6. Add theme customization UI
+7. Implement theme persistence using localStorage
+
+# Test Strategy:
+1. Test theme application changes visual appearance
+2. Verify all customizable properties work correctly
+3. Test preset themes (light/dark)
+4. Verify theme switching during runtime
+5. Test theme persistence
+6. Verify theme customization UI
+7. Test with various color combinations for accessibility

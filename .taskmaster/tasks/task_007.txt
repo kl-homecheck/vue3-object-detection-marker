@@ -1,0 +1,80 @@
+# Task ID: 7
+# Title: Implement Rectangle Selection Mode
+# Status: done
+# Dependencies: 6
+# Priority: medium
+# Description: Create the rectangle selection mode that allows users to select a rectangular area of grid cells by dragging from a start point to an end point.
+# Details:
+1. Add rectangle selection state to component:
+```typescript
+const selectionStart = ref<{ row: number, col: number } | null>(null);
+const selectionEnd = ref<{ row: number, col: number } | null>(null);
+const tempSelectedGrids = ref<Set<string>>(new Set());
+```
+2. Implement rectangle selection handlers:
+```typescript
+const handleRectangleStart = (event: MouseEvent) => {
+  if (currentMode.value !== 'rectangle') return;
+  isDrawing.value = true;
+  const { offsetX, offsetY } = event;
+  const coords = canvasManager.value.getGridCoordinates(offsetX, offsetY);
+  selectionStart.value = coords;
+  selectionEnd.value = coords;
+  updateRectangleSelection();
+};
+
+const handleRectangleMove = (event: MouseEvent) => {
+  if (!isDrawing.value || currentMode.value !== 'rectangle') return;
+  const { offsetX, offsetY } = event;
+  selectionEnd.value = canvasManager.value.getGridCoordinates(offsetX, offsetY);
+  updateRectangleSelection();
+};
+
+const handleRectangleEnd = () => {
+  if (currentMode.value !== 'rectangle') return;
+  isDrawing.value = false;
+  
+  // Commit temporary selection to permanent selection
+  tempSelectedGrids.value.forEach(key => {
+    const [row, col] = key.split(',').map(Number);
+    canvasManager.value.selectGrid(row, col);
+  });
+  
+  tempSelectedGrids.value.clear();
+  selectionStart.value = null;
+  selectionEnd.value = null;
+  canvasManager.value.render();
+};
+
+const updateRectangleSelection = () => {
+  if (!selectionStart.value || !selectionEnd.value) return;
+  
+  tempSelectedGrids.value.clear();
+  
+  const startRow = Math.min(selectionStart.value.row, selectionEnd.value.row);
+  const endRow = Math.max(selectionStart.value.row, selectionEnd.value.row);
+  const startCol = Math.min(selectionStart.value.col, selectionEnd.value.col);
+  const endCol = Math.max(selectionStart.value.col, selectionEnd.value.col);
+  
+  for (let row = startRow; row <= endRow; row++) {
+    for (let col = startCol; col <= endCol; col++) {
+      tempSelectedGrids.value.add(canvasManager.value.getGridKey(row, col));
+    }
+  }
+  
+  // Render with temporary selection
+  renderWithTemporarySelection();
+};
+```
+3. Add visual feedback for rectangle selection
+4. Implement mode switching between point and rectangle
+5. Add touch support for rectangle selection
+6. Optimize rectangle selection for large areas
+
+# Test Strategy:
+1. Test rectangle selection calculations
+2. Verify rectangle selection correctly identifies all cells in the rectangle
+3. Test mode switching between point and rectangle modes
+4. Verify touch support works on mobile devices
+5. Test selection of large rectangular areas
+6. Verify visual feedback during rectangle selection

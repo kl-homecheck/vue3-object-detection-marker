@@ -1,0 +1,110 @@
+# Task ID: 11
+# Title: Implement Selection Data Export
+# Status: done
+# Dependencies: 6, 7, 8
+# Priority: medium
+# Description: Create functionality to export the selected grid data in a structured format (JSON) with coordinates, metadata, and relative position information.
+# Details:
+1. Add data export methods to the component:
+```typescript
+const getSelectionData = (): SelectionData => {
+  const gridData: GridCell[] = [];
+  const totalGrids = Math.ceil(imageElement.value!.width / props.gridSize) * 
+                    Math.ceil(imageElement.value!.height / props.gridSize);
+  
+  canvasManager.value.getSelectedGrids().forEach(key => {
+    const [row, col] = key.split(',').map(Number);
+    const bounds = canvasManager.value.getGridBounds(row, col);
+    
+    gridData.push({
+      row,
+      col,
+      key,
+      bounds: {
+        x: bounds.x,
+        y: bounds.y,
+        width: bounds.width,
+        height: bounds.height
+      },
+      // Relative positions (0-1 range)
+      relativePosition: {
+        x: bounds.x / imageElement.value!.width,
+        y: bounds.y / imageElement.value!.height,
+        width: bounds.width / imageElement.value!.width,
+        height: bounds.height / imageElement.value!.height
+      }
+    });
+  });
+  
+  return {
+    imageSize: {
+      width: imageElement.value!.width,
+      height: imageElement.value!.height
+    },
+    gridSize: props.gridSize,
+    totalGrids,
+    selectedGrids: gridData.length,
+    selectionRatio: gridData.length / totalGrids,
+    gridData
+  };
+};
+
+const exportSelectionAsJSON = () => {
+  const data = getSelectionData();
+  const json = JSON.stringify(data, null, 2);
+  const blob = new Blob([json], { type: 'application/json' });
+  const url = URL.createObjectURL(blob);
+  
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = 'selection-data.json';
+  a.click();
+  
+  URL.revokeObjectURL(url);
+};
+```
+2. Define TypeScript interfaces for the export data:
+```typescript
+interface GridCell {
+  row: number;
+  col: number;
+  key: string;
+  bounds: {
+    x: number;
+    y: number;
+    width: number;
+    height: number;
+  };
+  relativePosition: {
+    x: number;
+    y: number;
+    width: number;
+    height: number;
+  };
+}
+
+interface SelectionData {
+  imageSize: {
+    width: number;
+    height: number;
+  };
+  gridSize: number;
+  totalGrids: number;
+  selectedGrids: number;
+  selectionRatio: number;
+  gridData: GridCell[];
+}
+```
+3. Add export button to the UI
+4. Implement event emission for selection changes
+5. Add option to export as CSV format
+6. Implement selection data preview
+
+# Test Strategy:
+1. Test data export format correctness
+2. Verify relative position calculations
+3. Test JSON export functionality
+4. Verify event emissions on selection changes
+5. Test with various selection patterns
+6. Verify export works with large selections
+7. Test data format compatibility with common tools

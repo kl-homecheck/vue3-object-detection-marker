@@ -1,0 +1,73 @@
+# Task ID: 14
+# Title: Implement Undo/Redo Functionality
+# Status: deferred
+# Dependencies: 6, 7, 8
+# Priority: low
+# Description: Create an undo/redo system that allows users to reverse or reapply their selection actions with keyboard shortcuts and UI controls.
+# Details:
+1. Implement history management in the component:
+```typescript
+const history = ref<Array<Set<string>>>([new Set()]);
+const historyIndex = ref<number>(0);
+
+const saveToHistory = () => {
+  // Remove any forward history if we're not at the end
+  if (historyIndex.value < history.value.length - 1) {
+    history.value = history.value.slice(0, historyIndex.value + 1);
+  }
+  
+  // Clone current selection and add to history
+  const currentSelection = new Set(canvasManager.value.getSelectedGrids());
+  history.value.push(currentSelection);
+  historyIndex.value++;
+};
+
+const undo = () => {
+  if (historyIndex.value > 0) {
+    historyIndex.value--;
+    const previousState = new Set(history.value[historyIndex.value]);
+    canvasManager.value.setSelectedGrids(previousState);
+    canvasManager.value.render();
+  }
+};
+
+const redo = () => {
+  if (historyIndex.value < history.value.length - 1) {
+    historyIndex.value++;
+    const nextState = new Set(history.value[historyIndex.value]);
+    canvasManager.value.setSelectedGrids(nextState);
+    canvasManager.value.render();
+  }
+};
+```
+2. Add keyboard shortcut handlers:
+```typescript
+const handleKeyDown = (event: KeyboardEvent) => {
+  // Existing key handlers...
+  
+  // Add undo/redo shortcuts
+  if (event.ctrlKey || event.metaKey) {
+    if (event.key === 'z') {
+      event.preventDefault();
+      undo();
+    } else if (event.key === 'y' || (event.shiftKey && event.key === 'z')) {
+      event.preventDefault();
+      redo();
+    }
+  }
+};
+```
+3. Add UI controls for undo/redo
+4. Modify selection handlers to save state to history
+5. Implement history size limits to prevent memory issues
+6. Add visual feedback for undo/redo operations
+7. Implement history clearing on new image load
+
+# Test Strategy:
+1. Test undo functionality restores previous states
+2. Verify redo functionality works after undo
+3. Test keyboard shortcuts for undo/redo
+4. Verify history management with complex selection sequences
+5. Test history size limits
+6. Verify history clearing on new image load
+7. Test performance with large history stacks

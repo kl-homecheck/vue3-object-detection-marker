@@ -1,0 +1,357 @@
+# Task ID: 21
+# Title: Implement Resolution-Independent Selection and Preview Feature
+# Status: done
+# Dependencies: 6, 19, 20
+# Priority: high
+# Description: Develop a resolution-independent selection system using percentage-based coordinates and create a read-only preview component that displays only the selected areas.
+# Details:
+1. Implement percentage-based data format for selections:
+```typescript
+interface PercentageRect {
+  x: number;      // x-coordinate as percentage (0-100)
+  y: number;      // y-coordinate as percentage (0-100)
+  width: number;  // width as percentage (0-100)
+  height: number; // height as percentage (0-100)
+}
+
+// Add to CanvasManager
+private pixelToPercentage(pixelValue: number, totalSize: number): number {
+  return (pixelValue / totalSize) * 100;
+}
+
+private percentageToPixel(percentValue: number, totalSize: number): number {
+  return (percentValue / 100) * totalSize;
+}
+
+// Convert grid selections to percentage-based format
+convertSelectionsToPercentage(): PercentageRect[] {
+  const selections: PercentageRect[] = [];
+  const { width, height } = this.imageSize;
+  
+  // For each selected grid, convert to percentage-based rectangle
+  this.selectedGrids.forEach(gridKey => {
+    const [row, col] = gridKey.split('-').map(Number);
+    const cellWidth = width / this.gridSize.cols;
+    const cellHeight = height / this.gridSize.rows;
+    
+    const x = this.pixelToPercentage(col * cellWidth, width);
+    const y = this.pixelToPercentage(row * cellHeight, height);
+    const w = this.pixelToPercentage(cellWidth, width);
+    const h = this.pixelToPercentage(cellHeight, height);
+    
+    selections.push({ x, y, width: w, height: h });
+  });
+  
+  return selections;
+}
+```
+
+2. Create a read-only preview component:
+```vue
+<template>
+  <div class="selection-preview" ref="previewContainer">
+    <canvas ref="previewCanvas"></canvas>
+  </div>
+</template>
+
+<script setup lang="ts">
+import { ref, onMounted, watch, PropType } from 'vue';
+import { PercentageRect } from '../types';
+
+const props = defineProps({
+  imageUrl: {
+    type: String,
+    required: true
+  },
+  selections: {
+    type: Array as PropType<PercentageRect[]>,
+    required: true
+  },
+  highlightColor: {
+    type: String,
+    default: 'rgba(0, 123, 255, 0.5)'
+  }
+});
+
+const previewCanvas = ref<HTMLCanvasElement | null>(null);
+const previewContainer = ref<HTMLDivElement | null>(null);
+const image = new Image();
+
+onMounted(() => {
+  loadImage();
+});
+
+watch(() => props.imageUrl, loadImage);
+watch(() => props.selections, renderPreview, { deep: true });
+
+function loadImage() {
+  image.onload = () => {
+    if (previewCanvas.value && previewContainer.value) {
+      previewCanvas.value.width = previewContainer.value.clientWidth;
+      previewCanvas.value.height = previewContainer.value.clientHeight;
+      renderPreview();
+    }
+  };
+  image.src = props.imageUrl;
+}
+
+function renderPreview() {
+  if (!previewCanvas.value || !image.complete) return;
+  
+  const ctx = previewCanvas.value.getContext('2d');
+  if (!ctx) return;
+  
+  const canvas = previewCanvas.value;
+  
+  // Clear canvas
+  ctx.clearRect(0, 0, canvas.width, canvas.height);
+  
+  // Draw image
+  ctx.drawImage(image, 0, 0, canvas.width, canvas.height);
+  
+  // Apply mask to hide non-selected areas
+  ctx.fillStyle = 'rgba(0, 0, 0, 0.7)';
+  ctx.fillRect(0, 0, canvas.width, canvas.height);
+  
+  // Draw only selected areas
+  ctx.globalCompositeOperation = 'destination-out';
+  props.selections.forEach(selection => {
+    const x = (selection.x / 100) * canvas.width;
+    const y = (selection.y / 100) * canvas.height;
+    const width = (selection.width / 100) * canvas.width;
+    const height = (selection.height / 100) * canvas.height;
+    
+    ctx.fillRect(x, y, width, height);
+  });
+  
+  // Reset composite operation
+  ctx.globalCompositeOperation = 'source-over';
+  
+  // Highlight selected areas
+  ctx.fillStyle = props.highlightColor;
+  props.selections.forEach(selection => {
+    const x = (selection.x / 100) * canvas.width;
+    const y = (selection.y / 100) * canvas.height;
+    const width = (selection.width / 100) * canvas.width;
+    const height = (selection.height / 100) * canvas.height;
+    
+    ctx.fillRect(x, y, width, height);
+  });
+}
+</script>
+
+<style scoped>
+.selection-preview {
+  width: 100%;
+  height: 100%;
+  position: relative;
+}
+canvas {
+  width: 100%;
+  height: 100%;
+}
+</style>
+```
+
+3. Develop helper functions for coordinate conversion:
+```typescript
+// Add to utils/coordinates.ts
+export function pixelRectToPercentage(
+  rect: { x: number; y: number; width: number; height: number },
+  imageWidth: number,
+  imageHeight: number
+): PercentageRect {
+  return {
+    x: (rect.x / imageWidth) * 100,
+    y: (rect.y / imageHeight) * 100,
+    width: (rect.width / imageWidth) * 100,
+    height: (rect.height / imageHeight) * 100
+  };
+}
+
+export function percentageRectToPixel(
+  rect: PercentageRect,
+  imageWidth: number,
+  imageHeight: number
+): { x: number; y: number; width: number; height: number } {
+  return {
+    x: (rect.x / 100) * imageWidth,
+    y: (rect.y / 100) * imageHeight,
+    width: (rect.width / 100) * imageWidth,
+    height: (rect.height / 100) * imageHeight
+  };
+}
+
+// Add method to export selections in percentage format
+export function getPercentageSelections(): PercentageRect[] {
+  // For the current active color layer
+  return this.convertSelectionsToPercentage();
+}
+```
+
+4. Integrate with existing color layer system:
+```typescript
+// Extend ColorLayer interface
+interface ColorLayer {
+  color: string;
+  selectedGrids: Set<string>;
+  visible: boolean;
+  percentageSelections?: PercentageRect[]; // Add this property
+}
+
+// Update layer selection methods to maintain percentage data
+updateLayerPercentageSelections(layerId: string): void {
+  const layer = this.colorLayers.get(layerId);
+  if (layer) {
+    // Convert the layer's grid selections to percentage format
+    layer.percentageSelections = this.convertLayerSelectionsToPercentage(layer);
+  }
+}
+
+// Helper to convert a specific layer's selections
+convertLayerSelectionsToPercentage(layer: ColorLayer): PercentageRect[] {
+  const selections: PercentageRect[] = [];
+  const { width, height } = this.imageSize;
+  
+  layer.selectedGrids.forEach(gridKey => {
+    // Same conversion logic as before
+    // ...
+  });
+  
+  return selections;
+}
+```
+
+5. Add resize handling to maintain selections:
+```typescript
+// Add to CanvasManager
+handleImageResize(newWidth: number, newHeight: number): void {
+  const oldWidth = this.imageSize.width;
+  const oldHeight = this.imageSize.height;
+  
+  // Update image size
+  this.imageSize = { width: newWidth, height: newHeight };
+  
+  // Recalculate grid dimensions
+  this.updateGridDimensions();
+  
+  // For each color layer, maintain selections using percentage data
+  this.colorLayers.forEach((layer, layerId) => {
+    if (layer.percentageSelections) {
+      // Clear current grid selections
+      layer.selectedGrids.clear();
+      
+      // Convert percentage selections back to grid selections with new dimensions
+      layer.percentageSelections.forEach(pRect => {
+        const pixelRect = percentageRectToPixel(pRect, newWidth, newHeight);
+        this.addGridsFromPixelRect(pixelRect, layerId);
+      });
+    }
+  });
+  
+  // Trigger render update
+  this.render();
+}
+
+// Helper to add grid selections from a pixel rectangle
+private addGridsFromPixelRect(
+  rect: { x: number; y: number; width: number; height: number },
+  layerId: string
+): void {
+  const layer = this.colorLayers.get(layerId);
+  if (!layer) return;
+  
+  const { cols, rows } = this.gridSize;
+  const cellWidth = this.imageSize.width / cols;
+  const cellHeight = this.imageSize.height / rows;
+  
+  // Calculate grid cells that fall within the rectangle
+  const startCol = Math.floor(rect.x / cellWidth);
+  const startRow = Math.floor(rect.y / cellHeight);
+  const endCol = Math.min(cols - 1, Math.floor((rect.x + rect.width) / cellWidth));
+  const endRow = Math.min(rows - 1, Math.floor((rect.y + rect.height) / cellHeight));
+  
+  // Add all grid cells in the rectangle to the layer's selection
+  for (let row = startRow; row <= endRow; row++) {
+    for (let col = startCol; col <= endCol; col++) {
+      layer.selectedGrids.add(`${row}-${col}`);
+    }
+  }
+}
+
+# Test Strategy:
+1. Test percentage-based data format:
+   - Create a test image with known dimensions
+   - Make various grid selections
+   - Convert to percentage format using the new functions
+   - Verify that percentage values are correctly calculated (0-100 range)
+   - Change image resolution and verify selections maintain their relative positions
+
+2. Test read-only preview component:
+   - Create a test harness that loads different images
+   - Pass various selection patterns to the preview component
+   - Verify that only selected areas are visible in the preview
+   - Test with different image sizes and aspect ratios
+   - Verify the preview updates when selections change
+   - Test with empty selections and verify the entire image is masked
+
+3. Test coordinate conversion helpers:
+   - Create unit tests for pixelRectToPercentage and percentageRectToPixel functions
+   - Test with various input values including edge cases (0, 100%)
+   - Verify round-trip conversion (pixel → percentage → pixel) maintains accuracy
+   - Test with different image dimensions
+
+4. Test integration with color layer system:
+   - Verify percentage selections are correctly maintained for each color layer
+   - Test switching between layers and verify selections remain intact
+   - Test with multiple layers having different selection patterns
+
+5. Test resize handling:
+   - Load an image and make selections
+   - Resize the image to various dimensions
+   - Verify selections maintain their relative positions
+   - Test extreme resizing (very small to very large and vice versa)
+   - Verify grid calculations are correct after resize
+
+6. Test browser compatibility:
+   - Verify the preview component works in all major browsers
+   - Test on different devices (desktop, tablet, mobile)
+   - Verify canvas rendering is consistent across platforms
+
+# Subtasks:
+## 1. 해상도 독립적인 % 기반 데이터 형식 구현 [done]
+### Dependencies: None
+### Description: % 기반 데이터 형식 구현을 위한 하위 작업을 추가합니다. 이 작업은 해상도에 독립적인 데이터 가져오기/내보내기 기능을 만드는 것을 목표로 합니다.
+### Details:
+
+
+## 2. 읽기 전용 미리보기 컴포넌트 생성 [done]
+### Dependencies: None
+### Description: 읽기 전용 미리보기 컴포넌트 생성을 위한 하위 작업을 추가합니다. 이 컴포넌트는 입력 데이터를 기반으로 선택 영역을 시각화하는 역할을 합니다.
+### Details:
+
+
+## 3. % 기반 Rect 좌표 변환 헬퍼 함수 개발 [done]
+### Dependencies: None
+### Description: % 기반 Rect 좌표 변환 헬퍼 함수 개발을 위한 하위 작업을 추가합니다. 이 함수는 선택된 영역 데이터를 퍼센트 기반의 사각형 좌표로 변환하는 기능을 제공합니다.
+### Details:
+
+
+## 4. 선택 데이터 저장 방식 최적화 (사각형 병합) [done]
+### Dependencies: None
+### Description: 사용자의 요청에 따라, 선택된 인접 격자들을 더 큰 사각형으로 병합하여 데이터 저장 용량을 최적화하는 새로운 하위 작업을 추가합니다.
+### Details:
+
+
+## 5. 미리보기 렌더링 최적화 (외곽선 그리기) [done]
+### Dependencies: 21.4
+### Description: 사용자의 요청에 따라, 병합된 사각형 데이터의 외곽선만 그리도록 미리보기 렌더링 로직을 최적화하는 새로운 하위 작업을 추가합니다.
+### Details:
+
+
+## 6. 격자 기반 데이터 형식 리팩토링 및 메타데이터 추가 [pending]
+### Dependencies: None
+### Description: 사용자의 제안에 따라, 내보내는 데이터 형식을 최적화하는 새로운 하위 작업을 추가합니다. 이 작업은 데이터를 퍼센트 대신 격자 단위로 저장하고, 총 열/행 수를 메타데이터로 포함시켜 데이터 용량을 줄이고 정밀도를 높이는 것을 목표로 합니다.
+### Details:
+
+

@@ -1,0 +1,81 @@
+# Task ID: 10
+# Title: Implement Mode Switching Interface
+# Status: done
+# Dependencies: 6, 7, 8
+# Priority: medium
+# Description: Create an interface for switching between different selection modes (point-based, rectangle, eraser) with visual indicators and keyboard shortcuts.
+# Details:
+1. Add mode switching methods to the component:
+```typescript
+const setMode = (mode: 'point' | 'rectangle' | 'eraser') => {
+  currentMode.value = mode;
+  // Reset any active operations
+  isDrawing.value = false;
+  selectionStart.value = null;
+  selectionEnd.value = null;
+  tempSelectedGrids.value.clear();
+};
+```
+2. Implement keyboard shortcuts:
+```typescript
+onMounted(() => {
+  window.addEventListener('keydown', handleKeyDown);
+});
+
+onUnmounted(() => {
+  window.removeEventListener('keydown', handleKeyDown);
+});
+
+const handleKeyDown = (event: KeyboardEvent) => {
+  switch(event.key) {
+    case 'p':
+      setMode('point');
+      break;
+    case 'r':
+      setMode('rectangle');
+      break;
+    case 'e':
+      setMode('eraser');
+      break;
+  }
+};
+```
+3. Create mode indicator component:
+```vue
+<div class="mode-indicator">
+  <button 
+    :class="{ active: currentMode === 'point' }" 
+    @click="setMode('point')"
+    title="Point Selection Mode (P)"
+  >
+    <span>Point</span>
+  </button>
+  <button 
+    :class="{ active: currentMode === 'rectangle' }" 
+    @click="setMode('rectangle')"
+    title="Rectangle Selection Mode (R)"
+  >
+    <span>Rectangle</span>
+  </button>
+  <button 
+    :class="{ active: currentMode === 'eraser' }" 
+    @click="setMode('eraser')"
+    title="Eraser Mode (E)"
+  >
+    <span>Eraser</span>
+  </button>
+</div>
+```
+4. Add CSS for mode indicators
+5. Implement tooltips for mode buttons
+6. Add visual feedback when mode changes
+7. Make mode switching interface optional/hideable
+
+# Test Strategy:
+1. Test mode switching functionality
+2. Verify keyboard shortcuts work correctly
+3. Test mode indicator UI updates
+4. Verify tooltips display correctly
+5. Test visual feedback during mode changes
+6. Verify mode switching works on mobile devices
+7. Test hiding/showing mode interface

@@ -1,0 +1,337 @@
+# Task ID: 19
+# Title: Implement Color-Based Layer System
+# Status: done
+# Dependencies: 6, 7, 11
+# Priority: high
+# Description: Create a layering system where each color has an independent layer, allowing users to switch between color layers and make selections without affecting other color layers.
+# Details:
+1. Extend the current selection state to support multiple color layers:
+```typescript
+interface ColorLayer {
+  color: string;
+  selectedGrids: Set<string>;
+  visible: boolean;
+}
+
+// Add to component state
+const colorLayers = ref<Map<string, ColorLayer>>(new Map());
+const activeColorLayer = ref<string>('#000000'); // Default black
+
+// Initialize with basic colors
+const initColorLayers = () => {
+  const defaultColors = ['#000000', '#FF0000', '#00FF00', '#0000FF', '#FFFF00', '#FF00FF', '#00FFFF'];
+  defaultColors.forEach(color => {
+    colorLayers.value.set(color, {
+      color,
+      selectedGrids: new Set<string>(),
+      visible: true
+    });
+  });
+};
+```
+
+2. Modify the CanvasManager to support color-based rendering:
+```typescript
+class CanvasManager {
+  // Existing properties...
+  
+  // Add color layer rendering
+  renderColorLayers(layers: Map<string, ColorLayer>): void {
+    this.clearSelection(); // Clear previous rendering
+    
+    // Render each visible layer
+    layers.forEach(layer => {
+      if (!layer.visible) return;
+      
+      this.ctx.fillStyle = layer.color;
+      layer.selectedGrids.forEach(gridKey => {
+        const [row, col] = gridKey.split(',').map(Number);
+        const bounds = this.getGridBounds(row, col);
+        this.ctx.fillRect(bounds.x, bounds.y, bounds.width, bounds.height);
+      });
+    });
+  }
+}
+```
+
+3. Update selection methods to work with the active color layer:
+```typescript
+const toggleGridSelection = (row: number, col: number) => {
+  const key = canvasManager.value.getGridKey(row, col);
+  const layer = colorLayers.value.get(activeColorLayer.value);
+  
+  if (!layer) return;
+  
+  if (layer.selectedGrids.has(key)) {
+    layer.selectedGrids.delete(key);
+  } else {
+    layer.selectedGrids.add(key);
+  }
+  
+  // Re-render all visible layers
+  canvasManager.value.renderColorLayers(colorLayers.value);
+};
+```
+
+4. Implement layer switching UI:
+```vue
+<template>
+  <div class="color-layer-controls">
+    <div 
+      v-for="(layer, color) in colorLayers" 
+      :key="color"
+      class="color-layer-button"
+      :class="{ active: activeColorLayer === color }"
+      :style="{ backgroundColor: color }"
+      @click="setActiveColorLayer(color)"
+    >
+      <span class="visibility-toggle" @click.stop="toggleLayerVisibility(color)">
+        {{ layer.visible ? '👁️' : '👁️‍🗨️' }}
+      </span>
+    </div>
+    <button @click="addCustomColorLayer">+</button>
+  </div>
+</template>
+```
+
+5. Add layer management methods:
+```typescript
+const setActiveColorLayer = (color: string) => {
+  activeColorLayer.value = color;
+};
+
+const toggleLayerVisibility = (color: string) => {
+  const layer = colorLayers.value.get(color);
+  if (layer) {
+    layer.visible = !layer.visible;
+    canvasManager.value.renderColorLayers(colorLayers.value);
+  }
+};
+
+const addCustomColorLayer = () => {
+  // Show color picker and add new layer
+  const colorPicker = document.createElement('input');
+  colorPicker.type = 'color';
+  colorPicker.onchange = (e) => {
+    const newColor = (e.target as HTMLInputElement).value;
+    if (!colorLayers.value.has(newColor)) {
+      colorLayers.value.set(newColor, {
+        color: newColor,
+        selectedGrids: new Set<string>(),
+        visible: true
+      });
+      setActiveColorLayer(newColor);
+    }
+  };
+  colorPicker.click();
+};
+```
+
+6. Extend export/import functionality to support color layers:
+```typescript
+const exportColorLayers = (): ColorLayerExport => {
+  const layerData: Record<string, string[]> = {};
+  
+  colorLayers.value.forEach((layer, color) => {
+    layerData[color] = Array.from(layer.selectedGrids);
+  });
+  
+  return {
+    version: '1.0',
+    timestamp: new Date().toISOString(),
+    imageSize: { 
+      width: imageElement.value?.width || 0, 
+      height: imageElement.value?.height || 0 
+    },
+    gridSize: props.gridSize,
+    layers: layerData
+  };
+};
+
+const importColorLayers = (data: ColorLayerExport) => {
+  // Reset current layers
+  colorLayers.value.clear();
+  
+  // Import layers from data
+  Object.entries(data.layers).forEach(([color, gridKeys]) => {
+    colorLayers.value.set(color, {
+      color,
+      selectedGrids: new Set(gridKeys),
+      visible: true
+    });
+  });
+  
+  // Set first color as active if available
+  if (colorLayers.value.size > 0) {
+    activeColorLayer.value = Array.from(colorLayers.value.keys())[0];
+  }
+  
+  // Re-render
+  canvasManager.value.renderColorLayers(colorLayers.value);
+};
+```
+
+7. Update the component's emitted events to include color layer information:
+```typescript
+const emitSelectionChange = () => {
+  emit('update:selection', {
+    activeColor: activeColorLayer.value,
+    layers: Array.from(colorLayers.value.entries()).map(([color, layer]) => ({
+      color,
+      selectedCount: layer.selectedGrids.size,
+      visible: layer.visible
+    })),
+    totalSelected: Array.from(colorLayers.value.values())
+      .reduce((total, layer) => total + (layer.visible ? layer.selectedGrids.size : 0), 0)
+  });
+};
+```
+
+# Test Strategy:
+1. Test color layer initialization with default colors
+2. Verify selection operations correctly modify the active color layer only
+3. Test layer switching functionality:
+   - Confirm active layer changes when selected
+   - Verify selections are applied to the correct layer
+4. Test layer visibility toggling:
+   - Verify layers can be hidden/shown
+   - Confirm hidden layers' selections are not rendered
+   - Ensure hidden layers' data is preserved
+5. Test custom color layer addition:
+   - Verify new colors can be added
+   - Confirm new layers are initialized correctly
+6. Test rendering of multiple color layers:
+   - Verify all visible layers render correctly
+   - Test with overlapping selections in different colors
+   - Confirm rendering order matches layer order
+7. Test export/import functionality:
+   - Verify all color layers are included in exports
+   - Test importing color layer data
+   - Confirm layer state is correctly restored
+8. Test UI controls:
+   - Verify color buttons correctly indicate active layer
+   - Test visibility toggle controls
+   - Confirm color picker for new layers works
+9. Test integration with existing selection modes:
+   - Verify point selection works with color layers
+   - Test rectangle selection with color layers
+   - Confirm eraser mode works correctly with active color layer
+10. Performance testing:
+    - Test with multiple color layers containing many selections
+    - Verify switching between layers is responsive
+
+# Subtasks:
+## 1. Implement ColorLayer Interface and State Management [done]
+### Dependencies: None
+### Description: Create the ColorLayer interface and implement the state management for multiple color layers
+### Details:
+Define the ColorLayer interface with color, selectedGrids, and visibility properties. Implement the ref for colorLayers Map and activeColorLayer. Create the initColorLayers function to initialize default colors. This forms the foundation of the layer system.
+<info added on 2025-07-14T02:18:22.388Z>
+ColorLayer interface and state management implementation completed:
+
+1. Added ColorLayer-related interfaces to types/index.ts:
+   - ColorLayer interface with properties: color, selectedGrids, visible, name, opacity
+   - ColorLayerExport interface
+   - LayerSelectionData interface
+   - ExtendedSelectionData interface
+   - ColorLayerState interface
+   - ColorLayerEvents interface
+
+2. Implemented color layer state in ObjectDetectionMarker.vue:
+   - Added colorLayers Map<string, ColorLayer>
+   - Added activeColorLayer string state
+   - Defined defaultColors array with 7 default colors
+   - Implemented initColorLayers() function to initialize layers with default colors
+   - Added getColorName() helper function for Korean color names
+
+3. Modified existing selection logic to work with the color layer system:
+   - Updated toggleGridSelection() to operate on the currently active layer
+   - Added initColorLayers() call in onMounted
+   - Modified resolution change handler to reset all layers
+</info added on 2025-07-14T02:18:22.388Z>
+
+## 2. Extend CanvasManager for Color-Based Rendering [done]
+### Dependencies: 19.1
+### Description: Modify the CanvasManager class to support rendering multiple color layers
+### Details:
+Add a renderColorLayers method to the CanvasManager that clears previous selections and renders each visible layer with its corresponding color. The method should respect layer visibility settings and use the correct color for each layer.
+<info added on 2025-07-14T02:20:33.029Z>
+Implementation of color layer rendering in CanvasManager completed:
+
+1. Modified redrawCanvas function:
+   - Changed from drawSelections() to drawColorLayers() call
+
+2. Implemented drawColorLayers() function:
+   - Iterates through all visible color layers for rendering
+   - Uses each layer's color property for rendering with appropriate color
+   - Supports layer.opacity (sets and restores globalAlpha)
+   - Maintains backward compatibility with existing selectedGrids as fallback
+   - Includes detailed console logging for rendering process
+
+3. Integrated active layer color coordination:
+   - Hover effects now use current active layer color
+   - Rectangle selection preview uses active layer color
+   - Applied lower opacity (40) for hover effects
+
+4. Enhanced rendering quality:
+   - Individual opacity applied per layer
+   - Respects layer visibility (visible) state
+   - Added detailed logging for debugging purposes
+</info added on 2025-07-14T02:20:33.029Z>
+
+## 3. Update Selection Methods for Active Color Layer [done]
+### Dependencies: 19.1, 19.2
+### Description: Modify grid selection methods to work with the active color layer
+### Details:
+Update the toggleGridSelection function to add/remove selections from the active color layer instead of a global selection set. Ensure that selections are properly tracked per color layer and that the canvas is re-rendered after selection changes.
+
+## 4. Create Layer Switching UI Components [done]
+### Dependencies: 19.1
+### Description: Implement the UI for switching between color layers and toggling visibility
+### Details:
+Create a color-layer-controls component with buttons for each color layer. Style active layers appropriately. Add visibility toggle buttons for each layer. Implement the + button for adding custom colors. Ensure the UI updates when the active layer changes.
+<info added on 2025-07-14T02:23:51.629Z>
+Color Layer UI Component Implementation Completed:
+
+1. Added color layer control UI to template:
+   - Circular buttons for each color layer (with corresponding background color)
+   - Visibility toggle buttons (👁️ emoji, click to show/hide layer)
+   - Display of selected cell count per layer
+   - Border highlight effect for active layer
+   - Button to add new color layers (+)
+
+2. Implemented color layer management methods:
+   - setActiveColorLayer() - change active layer
+   - toggleLayerVisibility() - toggle layer visibility
+   - addCustomColorLayer() - add new layer using browser color picker
+   - getActiveLayerCount() - return selection count for active layer
+   - getTotalSelectedCount() - calculate total selections across visible layers
+
+3. Extended event system:
+   - Added layerChange, activeLayerChange, layerVisibilityChange
+   - Added layerAdded, layerRemoved events
+
+4. Improved visual feedback:
+   - Display active layer information
+   - Show total selected grid count (visible layers only)
+   - Integrated color picker (creating temporary input in document)
+
+5. CSS styling:
+   - Designed circular color buttons
+   - Added hover/active state animations
+   - Enhanced readability with text shadows
+   - Implemented responsive layout
+</info added on 2025-07-14T02:23:51.629Z>
+
+## 5. Implement Layer Management Methods [done]
+### Dependencies: 19.1, 19.4
+### Description: Create methods for managing color layers including activation, visibility, and adding new layers
+### Details:
+Implement setActiveColorLayer, toggleLayerVisibility, and addCustomColorLayer functions. The addCustomColorLayer should create a color picker input and handle adding the new color to the layers map. Ensure all methods trigger appropriate UI updates.
+
+## 6. Extend Export/Import and Event Functionality [done]
+### Dependencies: 19.1, 19.2, 19.3, 19.5
+### Description: Update export/import functionality and component events to support color layers
+### Details:
+Create exportColorLayers and importColorLayers functions that handle saving and loading the multi-layer state. Update the emitSelectionChange method to include color layer information in emitted events. Ensure backward compatibility with existing code where possible.
+

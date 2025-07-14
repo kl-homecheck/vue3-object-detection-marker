@@ -1,0 +1,68 @@
+# Task ID: 5
+# Title: Implement Grid System Rendering
+# Status: done
+# Dependencies: 4
+# Priority: high
+# Description: Create the 244x244 pixel grid system with visual indicators for grid boundaries that adapts to different image sizes.
+# Details:
+1. Extend the CanvasManager class with grid rendering functionality:
+```typescript
+drawGrid(color: string = '#ffffff80'): void {
+  if (!this.image) return;
+  
+  const { width, height } = this.canvas;
+  const gridSize = this.gridSize;
+  
+  this.ctx.strokeStyle = color;
+  this.ctx.lineWidth = 1;
+  
+  // Draw vertical lines
+  for (let x = 0; x <= width; x += gridSize) {
+    this.ctx.beginPath();
+    this.ctx.moveTo(x, 0);
+    this.ctx.lineTo(x, height);
+    this.ctx.stroke();
+  }
+  
+  // Draw horizontal lines
+  for (let y = 0; y <= height; y += gridSize) {
+    this.ctx.beginPath();
+    this.ctx.moveTo(0, y);
+    this.ctx.lineTo(width, y);
+    this.ctx.stroke();
+  }
+}
+```
+2. Implement grid cell calculation functions:
+```typescript
+getGridCoordinates(x: number, y: number): { row: number, col: number } {
+  return {
+    row: Math.floor(y / this.gridSize),
+    col: Math.floor(x / this.gridSize)
+  };
+}
+
+getGridKey(row: number, col: number): string {
+  return `${row},${col}`;
+}
+
+getGridBounds(row: number, col: number): { x: number, y: number, width: number, height: number } {
+  return {
+    x: col * this.gridSize,
+    y: row * this.gridSize,
+    width: this.gridSize,
+    height: this.gridSize
+  };
+}
+```
+3. Add support for partial grid cells at image boundaries
+4. Implement grid visibility toggle
+5. Add grid opacity/color customization
+6. Optimize grid rendering for large images
+
+# Test Strategy:
+1. Test grid rendering with different image sizes
+2. Verify grid calculations return correct coordinates
+3. Test grid cell identification from pixel coordinates
+4. Verify grid appearance matches the 244x244 requirement
+5. Test grid rendering performance with large images

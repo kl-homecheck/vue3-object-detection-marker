@@ -1,0 +1,42 @@
+# Task ID: 8
+# Title: Implement Eraser Functionality
+# Status: done
+# Dependencies: 6
+# Priority: medium
+# Description: Create the eraser tool that allows users to deselect previously selected grid cells by dragging over them.
+# Details:
+1. Add eraser mode to the component state:
+```typescript
+const currentMode = ref<'point' | 'rectangle' | 'eraser'>(props.selectionMode || 'point');
+```
+2. Implement eraser mode toggle function:
+```typescript
+const toggleEraserMode = () => {
+  currentMode.value = currentMode.value === 'eraser' ? 
+    (props.selectionMode || 'point') : 'eraser';
+};
+```
+3. Modify the existing selection handlers to support eraser mode:
+```typescript
+const selectGridAtPosition = (x: number, y: number) => {
+  const { row, col } = canvasManager.value.getGridCoordinates(x, y);
+  if (currentMode.value === 'eraser') {
+    canvasManager.value.deselectGrid(row, col);
+  } else {
+    canvasManager.value.selectGrid(row, col);
+  }
+  canvasManager.value.render();
+};
+```
+4. Add visual indicator for eraser mode (cursor change)
+5. Implement eraser size option for more precise or broader erasing
+6. Add touch support for eraser functionality
+7. Optimize eraser performance for continuous use
+
+# Test Strategy:
+1. Test eraser mode toggle functionality
+2. Verify eraser correctly deselects grid cells
+3. Test eraser with different selection modes
+4. Verify visual indicators for eraser mode
+5. Test eraser on touch devices
+6. Verify eraser performance with continuous use
