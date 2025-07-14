@@ -27,98 +27,9 @@
       </div>
     </div>
     
-    <!-- Mode switching controls -->
-    <div class="mode-controls">
-      <button 
-        :class="{ active: currentMode === 'point' }"
-        @click="switchMode('point')"
-        class="mode-button"
-      >
-        포인트 모드
-      </button>
-      <button 
-        :class="{ active: currentMode === 'rectangle' }"
-        @click="switchMode('rectangle')"
-        class="mode-button"
-      >
-        사각형 모드
-      </button>
-      <button 
-        :class="{ active: currentMode === 'eraser' }"
-        @click="switchMode('eraser')"
-        class="mode-button"
-      >
-        지우개 모드
-      </button>
-    </div>
-    
-    <!-- Color Layer Controls -->
-    <div class="color-layer-controls">
-      <div class="layer-buttons">
-        <button 
-          v-for="([color, layer]) in colorLayers"
-          :key="color"
-          class="color-layer-button"
-          :class="{ active: activeColorLayer === color }"
-          :style="{ 
-            backgroundColor: color,
-            border: activeColorLayer === color ? '3px solid #333' : '2px solid #ccc'
-          }"
-          @click="setActiveColorLayer(color)"
-          :title="`${layer.name || color} 레이어`"
-        >
-          <span 
-            class="visibility-toggle" 
-            @click.stop="toggleLayerVisibility(color)"
-            :style="{ color: layer.visible ? '#fff' : '#999' }"
-          >
-            {{ layer.visible ? '👁️' : '👁️‍🗨️' }}
-          </span>
-          <span class="layer-count">{{ layer.selectedGrids ? layer.selectedGrids.size : 0 }}</span>
-        </button>
-      </div>
-      
-      <div class="active-layer-info">
-        활성 레이어: {{ getColorName(activeColorLayer) }} ({{ getActiveLayerCount() }}개 선택됨)
-      </div>
-    </div>
 
-    <!-- Brush Controls -->
-    <div class="brush-controls" v-if="currentMode === 'point' || currentMode === 'eraser'">
-      <div class="brush-size-control">
-        <label for="brush-size">브러시 크기: {{ brushSize }}</label>
-        <input
-          type="range"
-          id="brush-size"
-          min="1"
-          max="10"
-          v-model.number="brushSize"
-          class="brush-slider"
-        />
-      </div>
-      <div class="brush-shape-control">
-        <label>브러시 모양:</label>
-        <button
-          :class="{ active: brushShape === 'circle' }"
-          @click="brushShape = 'circle'"
-          class="shape-button"
-        >
-          원형
-        </button>
-        <button
-          :class="{ active: brushShape === 'square' }"
-          @click="brushShape = 'square'"
-          class="shape-button"
-        >
-          사각형
-        </button>
-      </div>
-    </div>
 
-    <!-- Selection info -->
-    <div class="selection-info">
-      전체 선택된 격자: {{ getTotalSelectedCount() }}개
-    </div>
+
   </div>
 </template>
 
@@ -748,7 +659,21 @@ defineExpose({
   importGridLayers, 
   getSelectionAsPercentRects,
   exportOptimizedLayers,
-  importOptimizedLayers
+  importOptimizedLayers,
+  // External control methods
+  switchMode,
+  setActiveColorLayer,
+  toggleLayerVisibility,
+  getColorLayers: () => colorLayers,
+  getActiveColorLayer: () => activeColorLayer.value,
+  getCurrentMode: () => currentMode.value,
+  getBrushSize: () => brushSize.value,
+  setBrushSize: (size: number) => { brushSize.value = size; },
+  getBrushShape: () => brushShape.value,
+  setBrushShape: (shape: BrushShape) => { brushShape.value = shape; },
+  getTotalSelectedCount,
+  getActiveLayerCount,
+  getColorName
 });
 
 onMounted(() => {
@@ -807,178 +732,5 @@ onUnmounted(() => {
 .loading-indicator { background: rgba(0, 123, 255, 0.9); }
 .error-message { background: rgba(220, 53, 69, 0.9); }
 
-.mode-controls {
-  display: flex;
-  gap: 0.5rem;
-  padding: 0.5rem;
-  background: #f8f9fa;
-  border-radius: 8px;
-  border: 1px solid #dee2e6;
-}
 
-.mode-button {
-  padding: 0.5rem 1rem;
-  border: 1px solid #dee2e6;
-  background: #ffffff;
-  color: #495057;
-  border-radius: 4px;
-  cursor: pointer;
-  font-size: 0.875rem;
-  font-weight: 500;
-  transition: all 0.2s ease;
-}
-
-.mode-button:hover { background: #e9ecef; border-color: #adb5bd; }
-.mode-button.active { background: #007bff; border-color: #007bff; color: #ffffff; }
-.mode-button.active:hover { background: #0056b3; border-color: #0056b3; }
-
-.selection-info {
-  padding: 0.5rem 1rem;
-  background: #e9ecef;
-  border-radius: 4px;
-  font-size: 0.875rem;
-  color: #495057;
-}
-
-.color-layer-controls {
-  display: flex;
-  flex-direction: column;
-  gap: 1rem;
-  padding: 1rem;
-  background: #f8f9fa;
-  border-radius: 8px;
-  border: 1px solid #dee2e6;
-}
-
-.layer-buttons {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 0.5rem;
-  align-items: center;
-}
-
-.color-layer-button {
-  position: relative;
-  width: 60px;
-  height: 60px;
-  border-radius: 50%;
-  cursor: pointer;
-  transition: all 0.2s ease;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  color: white;
-  font-weight: bold;
-  font-size: 0.8rem;
-}
-
-.color-layer-button:hover { transform: scale(1.1); box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3); }
-.color-layer-button.active { transform: scale(1.15); box-shadow: 0 6px 16px rgba(0, 0, 0, 0.4); }
-
-.visibility-toggle {
-  font-size: 1.2rem;
-  cursor: pointer;
-  user-select: none;
-  text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.5);
-}
-
-.layer-count {
-  font-size: 0.7rem;
-  margin-top: 2px;
-  text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.5);
-}
-
-.active-layer-info {
-  font-size: 0.9rem;
-  font-weight: 500;
-  color: #495057;
-  text-align: center;
-  padding: 0.5rem;
-  background: white;
-  border-radius: 4px;
-  border: 1px solid #dee2e6;
-}
-
-.brush-controls {
-  display: flex;
-  flex-direction: column;
-  gap: 0.5rem;
-  padding: 0.5rem;
-  background: #f8f9fa;
-  border-radius: 8px;
-  border: 1px solid #dee2e6;
-  width: 100%;
-  max-width: 300px;
-}
-
-.brush-size-control,
-.brush-shape-control {
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-}
-
-.brush-size-control label {
-  font-size: 0.875rem;
-  color: #495057;
-  font-weight: 500;
-}
-
-.brush-slider {
-  flex-grow: 1;
-  -webkit-appearance: none;
-  height: 8px;
-  background: #e9ecef;
-  border-radius: 4px;
-  outline: none;
-  opacity: 0.7;
-  transition: opacity 0.2s;
-}
-
-.brush-slider:hover {
-  opacity: 1;
-}
-
-.brush-slider::-webkit-slider-thumb {
-  -webkit-appearance: none;
-  appearance: none;
-  width: 20px;
-  height: 20px;
-  background: #007bff;
-  border-radius: 50%;
-  cursor: pointer;
-  box-shadow: 0 0 2px rgba(0, 0, 0, 0.2);
-}
-
-.brush-slider::-moz-range-thumb {
-  width: 20px;
-  height: 20px;
-  background: #007bff;
-  border-radius: 50%;
-  cursor: pointer;
-  box-shadow: 0 0 2px rgba(0, 0, 0, 0.2);
-}
-
-.brush-shape-control label {
-  font-size: 0.875rem;
-  color: #495057;
-  font-weight: 500;
-}
-
-.shape-button {
-  padding: 0.5rem 1rem;
-  border: 1px solid #dee2e6;
-  background: #ffffff;
-  color: #495057;
-  border-radius: 4px;
-  cursor: pointer;
-  font-size: 0.875rem;
-  font-weight: 500;
-  transition: all 0.2s ease;
-}
-
-.shape-button:hover { background: #e9ecef; border-color: #adb5bd; }
-.shape-button.active { background: #007bff; border-color: #007bff; color: #ffffff; }
-.shape-button.active:hover { background: #0056b3; border-color: #0056b3; }
 </style> 
