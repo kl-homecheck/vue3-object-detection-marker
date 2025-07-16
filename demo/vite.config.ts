@@ -41,7 +41,7 @@ export default defineConfig(({ mode }) => {
   // Development configuration
   return {
     plugins: [vue()],
-    base: process.env.NODE_ENV === 'production' ? '/hck-marker/' : '/',
+    base: process.env.NODE_ENV === 'production' ? '/vue3-object-detection-marker/' : '/',
     server: {
       port: 3000,
     },

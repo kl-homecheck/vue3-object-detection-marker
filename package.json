@@ -2,8 +2,8 @@
   "name": "vue3-object-detection-marker",
   "version": "1.0.0",
   "description": "A Vue 3 component for object detection marking with multi-layer support",
-  "main": "dist/index.js",
-  "module": "dist/index.esm.js",
+  "main": "dist/vue3-object-detection-marker.umd.cjs",
+  "module": "dist/vue3-object-detection-marker.js",
   "types": "dist/index.d.ts",
   "files": [
     "dist",
@@ -33,7 +33,7 @@
   "license": "MIT",
   "repository": {
     "type": "git",
-    "url": "https://github.com/kl-homecheck/vue3-object-detection-marker.git"
+    "url": "git+https://github.com/kl-homecheck/vue3-object-detection-marker.git"
   },
   "homepage": "https://kl-homecheck.github.io/vue3-object-detection-marker/",
   "bugs": {

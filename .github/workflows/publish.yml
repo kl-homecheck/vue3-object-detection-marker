@@ -32,6 +32,7 @@ jobs:
           registry-url: 'https://registry.npmjs.org'
           cache: 'npm'
           cache-dependency-path: demo/package-lock.json
+          always-auth: true
 
       - name: Install dependencies
         run: |
@@ -47,7 +48,9 @@ jobs:
         run: npm run build:lib
 
       - name: Copy built files to root
-        run: cp -r demo/dist ./dist
+        run: |
+          rm -rf ./dist
+          cp -r demo/dist ./dist
 
       - name: Check src changes
         id: check_src

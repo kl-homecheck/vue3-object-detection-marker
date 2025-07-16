@@ -492,7 +492,7 @@ const ze = { class: "object-detection-marker" }, Be = { class: "canvas-container
   for (const [l, h] of o)
     n[l] = h;
   return n;
-}, He = /* @__PURE__ */ me(Ye, [["__scopeId", "data-v-d93b913e"]]), Pe = { class: "object-detection-preview" }, Ne = {
+}, He = /* @__PURE__ */ me(Ye, [["__scopeId", "data-v-989cd7d1"]]), Pe = { class: "object-detection-preview" }, Ne = {
   key: 0,
   class: "skeleton-container"
 }, Ve = {
