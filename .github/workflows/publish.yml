@@ -2,127 +2,106 @@ name: Publish to NPM
 
 on:
   push:
-    branches: [main, master]
+    branches:
+      - main
+      - master
   pull_request:
     types: [closed]
-    branches: [main, master]
-
-permissions:
-  contents: write
-  packages: read
+    branches:
+      - main
+      - master
 
 jobs:
-  publish:
-    if: github.event_name == 'push' || (github.event_name == 'pull_request' && github.event.pull_request.merged == true)
+  check-changes:
     runs-on: ubuntu-latest
-    permissions:
-      contents: write
-      packages: read
-    
+    outputs:
+      src-changed: ${{ steps.changes.outputs.src-changed }}
     steps:
-      - name: Checkout code
+      - name: Checkout
         uses: actions/checkout@v4
         with:
-          fetch-depth: 0
+          fetch-depth: 2
+
+      - name: Check for source changes
+        id: changes
+        run: |
+          if git diff --name-only HEAD~1 HEAD | grep -E '^(src/|package\.json|vite\.config\.ts|tsconfig\.json)'; then
+            echo "src-changed=true" >> $GITHUB_OUTPUT
+          else
+            echo "src-changed=false" >> $GITHUB_OUTPUT
+          fi
+
+  publish:
+    needs: check-changes
+    if: needs.check-changes.outputs.src-changed == 'true'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
 
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
           node-version: '20'
           registry-url: 'https://registry.npmjs.org'
-          cache: 'npm'
-          cache-dependency-path: demo/package-lock.json
           always-auth: true
 
       - name: Install dependencies
-        run: |
-          cd demo
-          npm ci
+        run: npm ci
 
-      - name: Run type check
-        run: |
-          cd demo
-          npm run type-check
-
-      - name: Build package
-        run: npm run build:lib
-
-      - name: Copy built files to root
-        run: |
-          rm -rf ./dist
-          cp -r demo/dist ./dist
-
-      - name: Check src changes
-        id: check_src
-        run: |
-          # Check if there are any changes in the demo/src folder
-          if git diff --quiet HEAD~1 HEAD -- demo/src/ 2>/dev/null || [ ! -d "demo/src" ]; then
-            echo "changed=false" >> $GITHUB_OUTPUT
-            echo "No changes detected in demo/src folder"
-          else
-            echo "changed=true" >> $GITHUB_OUTPUT
-            echo "Changes detected in demo/src folder"
-          fi
+      - name: Build library
+        run: npm run build
 
       - name: Get current version
-        id: current_version
+        id: get-version
         run: echo "version=$(node -p "require('./package.json').version")" >> $GITHUB_OUTPUT
 
-      - name: Skip deployment notice
-        if: steps.check_src.outputs.changed == 'false'
+      - name: Check if version exists on NPM
+        id: check-version
         run: |
-          echo "🚫 Skipping NPM deployment - no changes detected in demo/src folder"
-          echo "Only committing code changes without publishing to NPM"
-
-      - name: Check if version exists on npm
-        if: steps.check_src.outputs.changed == 'true'
-        id: check_version
-        run: |
-          if npm view vue3-object-detection-marker@${{ steps.current_version.outputs.version }} version 2>/dev/null; then
-            echo "exists=true" >> $GITHUB_OUTPUT
+          if npm view vue3-object-detection-marker@${{ steps.get-version.outputs.version }} version 2>/dev/null; then
+            echo "version-exists=true" >> $GITHUB_OUTPUT
           else
-            echo "exists=false" >> $GITHUB_OUTPUT
+            echo "version-exists=false" >> $GITHUB_OUTPUT
           fi
 
-      - name: Auto increment version
-        if: steps.check_src.outputs.changed == 'true' && steps.check_version.outputs.exists == 'true'
+      - name: Increment version
+        if: steps.check-version.outputs.version-exists == 'true'
         run: |
           npm version patch --no-git-tag-version
-          echo "version=$(node -p "require('./package.json').version")" >> $GITHUB_OUTPUT
-        id: new_version
+          echo "new-version=$(node -p "require('./package.json').version")" >> $GITHUB_OUTPUT
+        id: increment-version
 
       - name: Publish to NPM
-        if: steps.check_src.outputs.changed == 'true'
-        run: npm publish
+        run: npm publish --access public
         env:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_DEPLOY_TOKEN }}
 
-      - name: Create git tag
-        if: steps.check_src.outputs.changed == 'true'
+      - name: Get final version
+        id: final-version
+        run: echo "version=$(node -p "require('./package.json').version")" >> $GITHUB_OUTPUT
+
+      - name: Create Git tag
         run: |
-          VERSION=${{ steps.new_version.outputs.version || steps.current_version.outputs.version }}
           git config --local user.email "action@github.com"
           git config --local user.name "GitHub Action"
-          git tag -a "v$VERSION" -m "Release v$VERSION"
-          git push origin "v$VERSION"
+          git tag -a "v${{ steps.final-version.outputs.version }}" -m "Release v${{ steps.final-version.outputs.version }}"
+          git push origin "v${{ steps.final-version.outputs.version }}"
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Create GitHub Release
-        if: steps.check_src.outputs.changed == 'true'
         uses: actions/create-release@v1
-        with:
-          tag_name: v${{ steps.new_version.outputs.version || steps.current_version.outputs.version }}
-          release_name: Release v${{ steps.new_version.outputs.version || steps.current_version.outputs.version }}
-          body: |
-            ## Changes
-            - Auto-published from ${{ github.event.head_commit.message || github.event.pull_request.title }}
-            
-            ## Installation
-            ```bash
-            npm install vue3-object-detection-marker@${{ steps.new_version.outputs.version || steps.current_version.outputs.version }}
-            ```
-          draft: false
-          prerelease: false
         env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }} 
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          tag_name: v${{ steps.final-version.outputs.version }}
+          release_name: Release v${{ steps.final-version.outputs.version }}
+          body: |
+            Auto-generated release for version ${{ steps.final-version.outputs.version }}
+            
+            Changes in this release:
+            - Updated source code
+            - See commit history for detailed changes
+          draft: false
+          prerelease: false 

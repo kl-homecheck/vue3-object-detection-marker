@@ -1,8 +1,8 @@
 <script setup lang="ts">
 import { ref, watch, computed } from 'vue';
-import ObjectDetectionMarker from './components/ObjectDetectionMarker.vue';
-import ObjectDetectionPreview from './components/ObjectDetectionPreview.vue';
-import type { GridLayerExport } from './types/index';
+import ObjectDetectionMarker from '../../src/components/ObjectDetectionMarker.vue';
+import ObjectDetectionPreview from '../../src/components/ObjectDetectionPreview.vue';
+import type { GridLayerExport } from '../../src/types/index';
 
 // --- State ---
 const markerRef = ref<InstanceType<typeof ObjectDetectionMarker> | null>(null);

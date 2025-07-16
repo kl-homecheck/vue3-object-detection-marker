@@ -1,47 +1,14 @@
 {
-  "name": "vue3-object-detection-marker",
+  "name": "vue3-object-detection-marker-demo",
   "version": "0.1.0",
-  "description": "Vue 3 component for object detection marking with grid-based selection on images",
-  "author": "Your Name <your.email@example.com>",
-  "license": "MIT",
-  "keywords": [
-    "vue",
-    "vue3",
-    "object-detection",
-    "image",
-    "grid",
-    "marking",
-    "annotation",
-    "canvas"
-  ],
+  "description": "Demo for Vue 3 Object Detection Marker",
+  "private": true,
   "type": "module",
-  "main": "./dist/vue3-object-detection-marker.umd.cjs",
-  "module": "./dist/vue3-object-detection-marker.js",
-  "types": "./dist/index.d.ts",
-  "files": [
-    "dist"
-  ],
-  "exports": {
-    ".": {
-      "import": "./dist/vue3-object-detection-marker.js",
-      "require": "./dist/vue3-object-detection-marker.umd.cjs"
-    }
-  },
-  "repository": {
-    "type": "git",
-    "url": "https://github.com/yourusername/vue3-object-detection-marker.git"
-  },
-  "homepage": "https://github.com/yourusername/vue3-object-detection-marker#readme",
-  "bugs": {
-    "url": "https://github.com/yourusername/vue3-object-detection-marker/issues"
-  },
   "scripts": {
     "dev": "vite",
     "build": "vue-tsc -b && vite build",
-    "build:lib": "vite build --mode lib",
     "preview": "vite preview",
     "type-check": "vue-tsc --noEmit",
-    "prepublishOnly": "npm run build:lib",
     "lint": "eslint src --ext .ts,.vue",
     "lint:fix": "eslint src --ext .ts,.vue --fix",
     "format": "prettier --write src/**/*.{ts,vue}",
@@ -62,7 +29,6 @@
     "prettier": "^3.6.2",
     "typescript": "~5.8.3",
     "vite": "^7.0.4",
-    "vite-plugin-dts": "^4.5.4",
     "vue-tsc": "^2.2.12"
   }
 }
