@@ -34,7 +34,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed, watch, onMounted, onUnmounted, withDefaults, defineProps, defineEmits } from 'vue';
+import { ref, computed, watch, onMounted, onUnmounted, withDefaults, defineProps, defineEmits, defineExpose } from 'vue';
 import type { 
   Props, 
   SelectionMode, 
@@ -496,6 +496,15 @@ const getTotalSelectedCount = (): number => {
   return Array.from(colorLayers.value.values()).reduce((total, layer) => total + (layer.visible ? layer.selectedGrids.size : 0), 0);
 };
 
+// --- Brush Methods ---
+const setBrushSize = (size: number) => {
+  brushSize.value = size;
+};
+
+const setBrushShape = (shape: BrushShape) => {
+  brushShape.value = shape;
+};
+
 // --- Data Export/Import ---
 const exportGridLayers = (): ColorLayerExport => {
   const layerData: Record<string, string[]> = {};
@@ -653,6 +662,19 @@ watch(() => props.layerColors, () => {
 }, { deep: true });
 
 defineExpose({ 
+  // Template accessible variables
+  canvasWidth,
+  canvasHeight,
+  imageLoaded,
+  errorMessage,
+  handleMouseDown,
+  handleMouseMove,
+  handleMouseUp,
+  handleMouseLeave,
+  handleTouchStart,
+  handleTouchMove,
+  handleTouchEnd,
+  // Data export/import methods
   exportGridLayers, 
   importGridLayers, 
   getSelectionAsPercentRects,
@@ -666,9 +688,9 @@ defineExpose({
   getActiveColorLayer: () => activeColorLayer.value,
   getCurrentMode: () => currentMode.value,
   getBrushSize: () => brushSize.value,
-  setBrushSize: (size: number) => { brushSize.value = size; },
+  setBrushSize,
   getBrushShape: () => brushShape.value,
-  setBrushShape: (shape: BrushShape) => { brushShape.value = shape; },
+  setBrushShape,
   getTotalSelectedCount,
   getActiveLayerCount,
   getColorName
@@ -691,6 +713,8 @@ onUnmounted(() => {
     URL.revokeObjectURL((imageElement.value as any)._objectUrl);
   }
 });
+
+
 
 </script>
 <style scoped>

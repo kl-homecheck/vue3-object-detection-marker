@@ -25,7 +25,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, watch, onMounted, computed, defineProps } from 'vue';
+import { ref, watch, onMounted, computed, defineProps, defineExpose } from 'vue';
 import type { ImageSource, GridLayerExport } from '../types';
 
 // --- Props ---
@@ -205,6 +205,14 @@ watch(() => [props.image, props.selectionData], drawPreview, { deep: true });
 
 onMounted(() => {
   drawPreview();
+});
+
+// Explicitly expose variables to template (workaround for TypeScript)
+defineExpose({
+  imageLoaded,
+  errorMessage,
+  currentObjectFitMode,
+  currentRenderMode
 });
 
 </script>
