@@ -356,4 +356,99 @@ export function mergeGridsToRects(selectedGrids: Set<string>, totalCols: number,
   }
 
   return rects;
+}
+
+/**
+ * Convert GridLayerExport to render mode rectangles
+ * For 'rect' mode: merges all rectangles in each layer into a single bounding rectangle
+ * For 'grid' mode: returns the original rectangles
+ */
+export function convertGridLayerToRenderRects(
+  data: import('../types').GridLayerExport,
+  renderMode: 'grid' | 'rect' = 'grid'
+): Record<string, Rectangle[]> {
+  const result: Record<string, Rectangle[]> = {};
+  
+  if (!data || !data.layers) {
+    return result;
+  }
+
+  Object.entries(data.layers).forEach(([color, rects]) => {
+    if (!rects || rects.length === 0) {
+      result[color] = [];
+      return;
+    }
+
+    if (renderMode === 'grid') {
+      // Grid mode: return original rectangles
+      result[color] = [...rects];
+    } else {
+      // Rect mode: merge all rectangles into a single bounding rectangle
+      result[color] = [getBoundingRectangle(rects)];
+    }
+  });
+
+  return result;
+}
+
+/**
+ * Get the bounding rectangle that contains all given rectangles
+ */
+export function getBoundingRectangle(rects: Rectangle[]): Rectangle {
+  if (rects.length === 0) {
+    return { x: 0, y: 0, width: 0, height: 0 };
+  }
+
+  let minX = Infinity;
+  let minY = Infinity;
+  let maxX = -Infinity;
+  let maxY = -Infinity;
+
+  rects.forEach(rect => {
+    minX = Math.min(minX, rect.x);
+    minY = Math.min(minY, rect.y);
+    maxX = Math.max(maxX, rect.x + rect.width);
+    maxY = Math.max(maxY, rect.y + rect.height);
+  });
+
+  return {
+    x: minX,
+    y: minY,
+    width: maxX - minX,
+    height: maxY - minY
+  };
+}
+
+/**
+ * Convert grid-based rectangles to percentage-based rectangles
+ * Useful for resolution-independent rendering
+ */
+export function convertGridRectsToPercentRects(
+  rects: Rectangle[],
+  gridCols: number,
+  gridRows: number
+): import('../types').PercentRect[] {
+  return rects.map(rect => ({
+    x: rect.x / gridCols,
+    y: rect.y / gridRows,
+    width: rect.width / gridCols,
+    height: rect.height / gridRows
+  }));
+}
+
+/**
+ * Convert percentage-based rectangles to pixel-based rectangles
+ * Useful for canvas rendering
+ */
+export function convertPercentRectsToPixelRects(
+  percentRects: import('../types').PercentRect[],
+  canvasWidth: number,
+  canvasHeight: number
+): Rectangle[] {
+  return percentRects.map(rect => ({
+    x: rect.x * canvasWidth,
+    y: rect.y * canvasHeight,
+    width: rect.width * canvasWidth,
+    height: rect.height * canvasHeight
+  }));
 } 

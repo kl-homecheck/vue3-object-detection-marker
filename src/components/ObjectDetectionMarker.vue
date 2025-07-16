@@ -44,7 +44,6 @@ import type {
   ExtendedSelectionData,
   ColorLayerExport,
   BrushShape,
-  PercentRect,
   GridLayerExport,
   Rectangle
 } from '../types';
@@ -594,26 +593,6 @@ const importGridLayers = (data: ColorLayerExport) => {
   emitSelectionChange();
 };
 
-const getSelectionAsPercentRects = (): Record<string, PercentRect[]> => {
-  const layerData: Record<string, PercentRect[]> = {};
-  if (!gridDimensions.value) return {};
-
-  const { rows, cols } = gridDimensions.value;
-
-  colorLayers.value.forEach((layer: ColorLayer, color: string) => {
-    if (layer.visible && layer.selectedGrids.size > 0) {
-      const mergedRects = mergeGridsToRects(layer.selectedGrids, cols, rows);
-      layerData[color] = mergedRects.map(rect => ({
-        x: rect.x / cols,
-        y: rect.y / rows,
-        width: rect.width / cols,
-        height: rect.height / rows
-      }));
-    }
-  });
-
-  return layerData;
-};
 
 const emitSelectionChange = () => {
   const layerData: LayerSelectionData = {
@@ -675,7 +654,6 @@ defineExpose({
   // Data export/import methods
   exportGridLayers, 
   importGridLayers, 
-  getSelectionAsPercentRects,
   exportOptimizedLayers,
   importOptimizedLayers,
   // External control methods

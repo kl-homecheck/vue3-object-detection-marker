@@ -3,6 +3,8 @@ import { ref, watch, computed } from 'vue';
 import ObjectDetectionMarker from '../../src/components/ObjectDetectionMarker.vue';
 import ObjectDetectionPreview from '../../src/components/ObjectDetectionPreview.vue';
 import type { GridLayerExport } from '../../src/types/index';
+// 새로운 helper 함수들 import
+import { convertGridLayerToRenderRects, getBoundingRectangle } from '../../src/utils/index';
 
 // --- State ---
 const markerRef = ref<InstanceType<typeof ObjectDetectionMarker> | null>(null);
@@ -26,6 +28,31 @@ const brushShape = ref<'circle' | 'square'>('circle');
 const showModal = ref(false);
 const modalTitle = ref('');
 const modalContent = ref('');
+
+// --- Helper Functions Usage Examples ---
+// 현재 preview data를 render mode에 맞게 변환한 결과를 computed로 제공
+const convertedRenderRects = computed(() => {
+  if (!previewData.value) return {};
+  return convertGridLayerToRenderRects(previewData.value, renderMode.value);
+});
+
+// 각 레이어의 bounding rectangle 정보를 제공
+const layerBoundingRects = computed(() => {
+  if (!previewData.value) return {};
+  const result: Record<string, any> = {};
+  
+  Object.entries(previewData.value.layers).forEach(([color, rects]) => {
+    if (rects && rects.length > 0) {
+      result[color] = {
+        boundingRect: getBoundingRectangle(rects),
+        originalRects: rects,
+        rectCount: rects.length
+      };
+    }
+  });
+  
+  return result;
+});
 
 // --- Methods ---
 const updatePreview = () => {
@@ -60,17 +87,48 @@ const handleExportGridLayers = () => {
   }
 };
 
-// Helper Export: Percent Rects
-const handleExportPercentRects = () => {
+// 새로운 export 함수: Render Mode 기반 Export
+const handleExportRenderRects = () => {
   if (markerRef.value) {
-    const data = markerRef.value.getSelectionAsPercentRects();
-    const jsonString = JSON.stringify(data, null, 2);
-    navigator.clipboard.writeText(jsonString).then(() => {
-      showExportModal('Percent Rects Export', jsonString);
-      updatePreview(); // Auto-update preview
-    });
+    const data = markerRef.value.exportOptimizedLayers();
+    if (data) {
+      const renderRects = convertGridLayerToRenderRects(data, renderMode.value);
+      const jsonString = JSON.stringify({
+        renderMode: renderMode.value,
+        layers: renderRects,
+        metadata: data.metadata
+      }, null, 2);
+      navigator.clipboard.writeText(jsonString).then(() => {
+        showExportModal(`Render Rects Export (${renderMode.value} mode)`, jsonString);
+      });
+    }
   }
 };
+
+// 새로운 export 함수: Bounding Rectangles Export
+const handleExportBoundingRects = () => {
+  if (markerRef.value) {
+    const data = markerRef.value.exportOptimizedLayers();
+    if (data) {
+      const boundingRects: Record<string, any> = {};
+      Object.entries(data.layers).forEach(([color, rects]) => {
+        if (rects && rects.length > 0) {
+          boundingRects[color] = getBoundingRectangle(rects);
+        }
+      });
+      
+      const jsonString = JSON.stringify({
+        type: 'bounding_rectangles',
+        layers: boundingRects,
+        metadata: data.metadata
+      }, null, 2);
+      navigator.clipboard.writeText(jsonString).then(() => {
+        showExportModal('Bounding Rectangles Export', jsonString);
+      });
+    }
+  }
+};
+
 
 // Test function to change image and trigger loading
 const handleChangeTestImage = () => {
@@ -372,8 +430,11 @@ watch([objectFitMode, renderMode], () => {
             <button @click="handleExportGridLayers" class="control-button secondary">
               Raw Grid Export
             </button>
-            <button @click="handleExportPercentRects" class="control-button secondary">
-              Percent Rects Export
+            <button @click="handleExportRenderRects" class="control-button secondary">
+              Render Rects Export ({{ renderMode === 'grid' ? 'Grid' : 'Rect' }} mode)
+            </button>
+            <button @click="handleExportBoundingRects" class="control-button secondary">
+              Bounding Rectangles Export
             </button>
           </div>
         </div>
@@ -399,6 +460,24 @@ watch([objectFitMode, renderMode], () => {
           <button @click="handleUpdateFromText" class="control-button primary">
             데이터 불러오기
           </button>
+        </div>
+
+        <!-- Helper Functions Debug Info -->
+        <div class="control-group" v-if="previewData">
+          <h4>Helper Functions 정보</h4>
+          <div class="debug-info">
+            <div class="debug-item">
+              <strong>Render Mode:</strong> {{ renderMode }}
+            </div>
+            <div class="debug-item">
+              <strong>Converted Rects:</strong>
+              <pre>{{ JSON.stringify(convertedRenderRects, null, 2) }}</pre>
+            </div>
+            <div class="debug-item">
+              <strong>Bounding Rects:</strong>
+              <pre>{{ JSON.stringify(layerBoundingRects, null, 2) }}</pre>
+            </div>
+          </div>
         </div>
 
         <!-- Status -->
@@ -964,10 +1043,50 @@ h1, h2 {
   color: white;
 }
 
-.action-button.secondary:hover {
-  background-color: #5a6268;
-  box-shadow: 0 4px 8px rgba(0,0,0,0.15);
-}
+  .action-button.secondary:hover {
+    background-color: #5a6268;
+    box-shadow: 0 4px 8px rgba(0,0,0,0.15);
+  }
+
+  /* Debug Info Styles */
+  .debug-info {
+    background-color: #f8f9fa;
+    border: 1px solid #e9ecef;
+    border-radius: 4px;
+    padding: 0.8rem;
+    margin-top: 0.5rem;
+    max-height: 300px;
+    overflow-y: auto;
+  }
+
+  .debug-item {
+    margin-bottom: 0.8rem;
+  }
+
+  .debug-item:last-child {
+    margin-bottom: 0;
+  }
+
+  .debug-item strong {
+    color: #495057;
+    font-size: 0.85rem;
+  }
+
+  .debug-item pre {
+    background-color: #ffffff;
+    border: 1px solid #dee2e6;
+    border-radius: 3px;
+    padding: 0.5rem;
+    font-size: 0.75rem;
+    line-height: 1.4;
+    margin-top: 0.3rem;
+    margin-bottom: 0;
+    overflow-x: auto;
+    white-space: pre-wrap;
+    word-wrap: break-word;
+    max-height: 150px;
+    overflow-y: auto;
+  }
 
 /* Responsive Design */
 @media (max-width: 1200px) {
