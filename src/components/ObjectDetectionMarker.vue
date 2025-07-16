@@ -512,7 +512,6 @@ const exportGridLayers = (): ColorLayerExport => {
     layerData[color] = Array.from(layer.selectedGrids);
   });
   return {
-    version: '1.1',
     imageSize: { width: imageElement.value?.naturalWidth || 0, height: imageElement.value?.naturalHeight || 0 },
     resolution: props.resolution, layers: layerData
   };
@@ -529,7 +528,6 @@ const exportOptimizedLayers = (): GridLayerExport | null => {
   });
 
   return {
-    version: '3.0-grid',
     metadata: { cols, rows },
     layers: layerData
   };

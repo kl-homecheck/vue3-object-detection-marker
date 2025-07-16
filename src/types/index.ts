@@ -134,7 +134,6 @@ export interface ColorLayer {
 
 // Color layer export/import format
 export interface ColorLayerExport {
-  version: string;
   imageSize: { width: number; height: number };
   resolution: number;
   layers: Record<string, string[]>; // color -> grid keys array
@@ -150,14 +149,12 @@ export interface PercentRect {
 
 // New export format using percentage-based rectangles
 export interface PercentLayerExport {
-  version: string;
   imageSize: { width: number; height: number };
   layers: Record<string, PercentRect[]>; // color -> PercentRect array
 }
 
 // New grid-based export format for data optimization
 export interface GridLayerExport {
-  version: string;
   metadata: {
     cols: number;
     rows: number;
