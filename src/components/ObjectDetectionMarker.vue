@@ -34,7 +34,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed, watch, onMounted, onUnmounted } from 'vue';
+import { ref, computed, watch, onMounted, onUnmounted, withDefaults, defineProps, defineEmits } from 'vue';
 import type { 
   Props, 
   SelectionMode, 
@@ -138,7 +138,7 @@ const getColorName = (color: string): string => {
 const initColorLayers = () => {
   colorLayers.value.clear();
   const colors = props.layerColors || [];
-  colors.forEach(color => {
+  colors.forEach((color: string) => {
     colorLayers.value.set(color.toUpperCase(), {
       color: color.toUpperCase(),
       selectedGrids: new Set<string>(),
@@ -207,9 +207,9 @@ const drawGrid = (ctx: CanvasRenderingContext2D) => {
 };
 
 const drawColorLayers = (ctx: CanvasRenderingContext2D) => {
-  colorLayers.value.forEach((layer) => {
+  colorLayers.value.forEach((layer: ColorLayer) => {
     if (layer.visible) {
-      layer.selectedGrids.forEach(key => {
+              layer.selectedGrids.forEach((key: string) => {
         const [row, col] = key.split(',').map(Number);
         drawCellHighlight(ctx, { row, col }, layer.color, layer.opacity);
       });
@@ -499,7 +499,7 @@ const getTotalSelectedCount = (): number => {
 // --- Data Export/Import ---
 const exportGridLayers = (): ColorLayerExport => {
   const layerData: Record<string, string[]> = {};
-  colorLayers.value.forEach((layer, color) => {
+  colorLayers.value.forEach((layer: ColorLayer, color: string) => {
     layerData[color] = Array.from(layer.selectedGrids);
   });
   return {
@@ -515,7 +515,7 @@ const exportOptimizedLayers = (): GridLayerExport | null => {
   const { rows, cols } = gridDimensions.value;
   const layerData: Record<string, Rectangle[]> = {};
 
-  colorLayers.value.forEach((layer, color) => {
+  colorLayers.value.forEach((layer: ColorLayer, color: string) => {
     layerData[color] = mergeGridsToRects(layer.selectedGrids, cols, rows);
   });
 
@@ -539,9 +539,9 @@ const importOptimizedLayers = (data: GridLayerExport) => {
 
   colorLayers.value.clear();
 
-  Object.entries(data.layers).forEach(([color, rects]) => {
+  Object.entries(data.layers).forEach(([color, rects]: [string, any]) => {
     const newSelectedGrids = new Set<string>();
-    rects.forEach(rect => {
+    rects.forEach((rect: any) => {
       for (let r = rect.y; r < rect.y + rect.height; r++) {
         for (let c = rect.x; c < rect.x + rect.width; c++) {
           newSelectedGrids.add(getGridKey(r, c));
@@ -570,7 +570,7 @@ const importOptimizedLayers = (data: GridLayerExport) => {
 const importGridLayers = (data: ColorLayerExport) => {
   if (!data || !data.layers) return;
   colorLayers.value.clear();
-  Object.entries(data.layers).forEach(([color, gridKeys]) => {
+  Object.entries(data.layers).forEach(([color, gridKeys]: [string, any]) => {
     const upperColor = color.toUpperCase();
     colorLayers.value.set(upperColor, {
       color: upperColor,
@@ -593,7 +593,7 @@ const getSelectionAsPercentRects = (): Record<string, PercentRect[]> => {
 
   const { rows, cols } = gridDimensions.value;
 
-  colorLayers.value.forEach((layer, color) => {
+  colorLayers.value.forEach((layer: ColorLayer, color: string) => {
     if (layer.visible && layer.selectedGrids.size > 0) {
       const mergedRects = mergeGridsToRects(layer.selectedGrids, cols, rows);
       layerData[color] = mergedRects.map(rect => ({
@@ -639,8 +639,8 @@ const emitSelectionChange = () => {
 };
 
 // --- Watchers & Lifecycle ---
-watch(() => props.image, (newImage) => { if (newImage) loadImage(newImage); }, { immediate: true });
-watch(() => props.selectionMode, (newMode) => { if (newMode) switchMode(newMode); });
+watch(() => props.image, (newImage: any) => { if (newImage) loadImage(newImage); }, { immediate: true });
+watch(() => props.selectionMode, (newMode: any) => { if (newMode) switchMode(newMode); });
 watch(() => props.resolution, () => {
   initColorLayers();
   updateGridCalculations();

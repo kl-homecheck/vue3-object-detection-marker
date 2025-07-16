@@ -25,7 +25,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, watch, onMounted, computed } from 'vue';
+import { ref, watch, onMounted, computed, defineProps } from 'vue';
 import type { ImageSource, GridLayerExport } from '../types';
 
 // --- Props ---
@@ -58,7 +58,7 @@ const getBoundingRect = (rects: Array<{ x: number; y: number; width: number; hei
   let maxX = -Infinity;
   let maxY = -Infinity;
   
-  rects.forEach(rect => {
+  rects.forEach((rect: any) => {
     minX = Math.min(minX, rect.x);
     minY = Math.min(minY, rect.y);
     maxX = Math.max(maxX, rect.x + rect.width);
@@ -161,7 +161,7 @@ const drawPreview = async () => {
             } else {
               // Grid mode: draw individual rectangles (original behavior)
               const path = new Path2D();
-              rects.forEach(rect => {
+              rects.forEach((rect: any) => {
                 const x = (rect.x / cols) * canvas.width;
                 const y = (rect.y / rows) * canvas.height;
                 const width = (rect.width / cols) * canvas.width;
