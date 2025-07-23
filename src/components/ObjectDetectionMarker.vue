@@ -467,6 +467,7 @@ const loadImage = async (imageSource: string | File | Blob) => {
     errorMessage.value = error.message;
   } finally {
     imageLoaded.value = true;
+    redrawCanvas();
   }
 };
 
