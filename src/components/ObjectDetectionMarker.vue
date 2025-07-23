@@ -364,7 +364,12 @@ const handleMouseLeave = () => {
 
 const handleTouchStart = (e: TouchEvent) => handleMouseDown({ clientX: e.touches[0].clientX, clientY: e.touches[0].clientY, preventDefault: () => e.preventDefault() } as MouseEvent);
 const handleTouchMove = (e: TouchEvent) => handleMouseMove({ clientX: e.touches[0].clientX, clientY: e.touches[0].clientY } as MouseEvent);
-const handleTouchEnd = () => handleMouseUp();
+const handleTouchEnd = () => {
+  handleMouseUp();
+  hoveredCell.value = null;
+  emit('gridHover', null);
+  redrawCanvas();
+}
 
 // --- Main Logic ---
 const getGridCellFromCoordinates = (x: number, y: number): GridCell | null => {
