@@ -5,6 +5,10 @@ on:
     branches:
       - main
 
+permissions:
+  id-token: write
+  contents: read
+
 jobs:
   check-changes:
     runs-on: ubuntu-latest
@@ -38,7 +42,9 @@ jobs:
         with:
           node-version: '20'
           registry-url: 'https://registry.npmjs.org'
-          always-auth: true
+
+      - name: Update npm to latest version
+        run: npm install -g npm@latest
 
       - name: Install dependencies
         run: npm ci
@@ -68,8 +74,6 @@ jobs:
 
       - name: Publish to NPM
         run: npm publish --access public
-        env:
-          NODE_AUTH_TOKEN: ${{ secrets.NPM_DEPLOY_TOKEN }}
 
       - name: Get final version
         id: final-version
