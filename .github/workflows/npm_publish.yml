@@ -52,6 +52,15 @@ jobs:
       - name: Build library
         run: npm run build
 
+      - name: Verify NPM authentication
+        run: |
+          echo "🔐 Using OIDC authentication for npm"
+          echo "📋 Package details:"
+          echo "  - Name: @homecheck/vue3-object-detection-marker"
+          echo "  - Registry: https://registry.npmjs.org"
+          echo "  - Access: public"
+          npm whoami || echo "Will authenticate via OIDC during publish"
+
       - name: Get current version
         id: get-version
         run: echo "version=$(node -p "require('./package.json').version")" >> $GITHUB_OUTPUT
@@ -59,10 +68,12 @@ jobs:
       - name: Check if version exists on NPM
         id: check-version
         run: |
-          if npm view vue3-object-detection-marker@${{ steps.get-version.outputs.version }} version 2>/dev/null; then
+          if npm view @homecheck/vue3-object-detection-marker@${{ steps.get-version.outputs.version }} version 2>/dev/null; then
             echo "version-exists=true" >> $GITHUB_OUTPUT
+            echo "⚠️ Version ${{ steps.get-version.outputs.version }} already exists on NPM"
           else
             echo "version-exists=false" >> $GITHUB_OUTPUT
+            echo "✅ Version ${{ steps.get-version.outputs.version }} is available for publishing"
           fi
 
       - name: Increment version
@@ -71,9 +82,26 @@ jobs:
           npm version patch --no-git-tag-version
           echo "new-version=$(node -p "require('./package.json').version")" >> $GITHUB_OUTPUT
         id: increment-version
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Publish to NPM
-        run: npm publish --access public
+        run: |
+          echo "📦 Publishing @homecheck/vue3-object-detection-marker@$(node -p "require('./package.json').version") to NPM..."
+          
+          # Try OIDC first, fallback to token if available
+          if npm publish --access public --provenance; then
+            echo "✅ Published successfully using OIDC"
+          elif [ -n "$NODE_AUTH_TOKEN" ]; then
+            echo "🔄 OIDC failed, trying with NPM_TOKEN..."
+            npm publish --access public
+            echo "✅ Published successfully using NPM_TOKEN"
+          else
+            echo "❌ Both OIDC and NPM_TOKEN publishing failed"
+            exit 1
+          fi
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
 
       - name: Get final version
         id: final-version
@@ -83,8 +111,14 @@ jobs:
         run: |
           git config --local user.email "action@github.com"
           git config --local user.name "GitHub Action"
-          git tag -a "v${{ steps.final-version.outputs.version }}" -m "Release v${{ steps.final-version.outputs.version }}"
-          git push origin "v${{ steps.final-version.outputs.version }}"
+          
+          # Check if tag already exists
+          if git rev-parse "v${{ steps.final-version.outputs.version }}" >/dev/null 2>&1; then
+            echo "Tag v${{ steps.final-version.outputs.version }} already exists, skipping tag creation"
+          else
+            git tag -a "v${{ steps.final-version.outputs.version }}" -m "Release v${{ steps.final-version.outputs.version }}"
+            git push origin "v${{ steps.final-version.outputs.version }}"
+          fi
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
